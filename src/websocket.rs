@@ -46,7 +46,7 @@ impl Stream for KucoinWebsocket {
         match self.as_mut().project().streams.poll_next(cx) {
             Poll::Ready(Some((y, _))) => match y {
                 StreamYield::Item(item) => {
-                    // let heartbeat = self.heartbeats.get_mut(&token).unwrap();
+                    // let heartbeat = self.heartbeats.get_mut(&token)?;
                     Poll::Ready(Some(item.map_err(Error::Websocket).and_then(parse_message)))
                 }
                 StreamYield::Finished(_) => Poll::Pending,
@@ -63,7 +63,7 @@ impl KucoinWebsocket {
         if endpoint.is_err() {
             Err(anyhow!("invalid url"))?
         }
-        let endpoint = endpoint.unwrap();
+        let endpoint = endpoint?;
 
         let (ws_stream, _) = connect_async(endpoint).await?;
 
@@ -76,7 +76,7 @@ impl KucoinWebsocket {
             sink_mutex
                 .lock()
                 .await
-                .send(Message::Text(serde_json::to_string(&sub).unwrap()))
+                .send(Message::Text(serde_json::to_string(&sub)?))
                 .await?;
         }
 
@@ -278,9 +278,7 @@ impl Kucoin {
         let endpoint = String::from("/api/v1/bullet-private");
 
         let url: String = format!("{}{}", &self.prefix, endpoint);
-        let header: header::HeaderMap = self
-            .sign_headers(endpoint, None, None, Method::POST)
-            .unwrap();
+        let header: header::HeaderMap = self.sign_headers(endpoint, None, None, Method::POST)?;
         let resp = self.post(url, Some(header), None).await?;
         let api_data: APIDatum<InstanceServers> = resp.json().await?;
         // println!("ws_bullet_private api:\n{api_data:#?}");
@@ -290,9 +288,7 @@ impl Kucoin {
     pub async fn ws_bullet_public(&self) -> Result<APIDatum<InstanceServers>> {
         let endpoint = String::from("/api/v1/bullet-public");
         let url: String = format!("{}{}", &self.prefix, endpoint);
-        let header: header::HeaderMap = self
-            .sign_headers(endpoint, None, None, Method::POST)
-            .unwrap();
+        let header: header::HeaderMap = self.sign_headers(endpoint, None, None, Method::POST)?;
         let resp = self.post(url, Some(header), None).await?;
         let api_data: APIDatum<InstanceServers> = resp.json().await?;
         Ok(api_data)

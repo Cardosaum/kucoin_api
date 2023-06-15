@@ -15,9 +15,7 @@ impl Kucoin {
     pub async fn get_user_subaccount_info(&self) -> Result<APIData<UserInfo>, Error> {
         let endpoint = String::from("/api/v1/sub/user");
         let url = format!("{}{}", &self.prefix, endpoint);
-        let header = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
+        let header = self.sign_headers(endpoint, None, None, Method::GET)?;
         let resp = self.get(url, Some(header)).await?.json().await?;
         Ok(resp)
     }
@@ -36,9 +34,7 @@ impl Kucoin {
             AccountType::Trade => params.insert(String::from("type"), String::from("trade")),
         };
         params.insert(String::from("currency"), currency.to_string());
-        let header = self
-            .sign_headers(endpoint, Some(&params), None, Method::POST)
-            .unwrap();
+        let header = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
         let resp = self
             .post(url, Some(header), Some(params))
             .await?
@@ -65,14 +61,10 @@ impl Kucoin {
         if !params.is_empty() {
             let query = format_query(&params);
             url = format!("{}{}{}", &self.prefix, endpoint, query);
-            headers = self
-                .sign_headers(endpoint, None, Some(query), Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         } else {
             url = format!("{}{}", &self.prefix, endpoint);
-            headers = self
-                .sign_headers(endpoint, None, None, Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         }
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
@@ -81,9 +73,7 @@ impl Kucoin {
     pub async fn get_account(&self, account_id: &str) -> Result<APIDatum<SingleAccount>, Error> {
         let endpoint = format!("/api/v1/accounts/{}", account_id);
         let url = format!("{}{}", &self.prefix, endpoint);
-        let headers = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
     }
@@ -115,14 +105,10 @@ impl Kucoin {
         if !params.is_empty() {
             let query = format_query(&params);
             url = format!("{}{}{}", &self.prefix, endpoint, query);
-            headers = self
-                .sign_headers(endpoint, None, Some(query), Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         } else {
             url = format!("{}{}", &self.prefix, endpoint);
-            headers = self
-                .sign_headers(endpoint, None, None, Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         }
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
@@ -147,14 +133,10 @@ impl Kucoin {
         if !params.is_empty() {
             let query = format_query(&params);
             url = format!("{}{}{}", &self.prefix, endpoint, query);
-            headers = self
-                .sign_headers(endpoint, None, Some(query), Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         } else {
             url = format!("{}{}", &self.prefix, endpoint);
-            headers = self
-                .sign_headers(endpoint, None, None, Method::GET)
-                .unwrap();
+            headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         }
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
@@ -166,9 +148,7 @@ impl Kucoin {
     ) -> Result<APIDatum<SubAccountBalances>, Error> {
         let endpoint = format!("/api/v1/sub-accounts/{}", account_id);
         let url = format!("{}{}", &self.prefix, endpoint);
-        let headers = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
     }
@@ -176,9 +156,7 @@ impl Kucoin {
     pub async fn get_all_subaccount_balances(&self) -> Result<APIData<SubAccountBalances>, Error> {
         let endpoint = String::from("/api/v1/sub-accounts");
         let url = format!("{}{}", &self.prefix, endpoint);
-        let headers = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
     }
@@ -195,9 +173,7 @@ impl Kucoin {
             AccountType::Trade => endpoint.push_str("&type=TRADE"),
         };
         let url = format!("{}{}", &self.prefix, endpoint);
-        let headers = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, None, Method::GET)?;
         let resp = self.get(url, Some(headers)).await?.json().await?;
         Ok(resp)
     }
@@ -227,9 +203,7 @@ impl Kucoin {
         if let Some(s) = sub_account_type {
             params.insert(String::from("subAccountType"), s.to_string());
         }
-        let headers = self
-            .sign_headers(endpoint, Some(&params), None, Method::POST)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
         let resp = self
             .post(url, Some(headers), Some(params))
             .await?
@@ -254,9 +228,7 @@ impl Kucoin {
         params.insert(String::from("from"), from.to_string());
         params.insert(String::from("to"), to.to_string());
         params.insert(String::from("amount"), amount.to_string());
-        let headers = self
-            .sign_headers(endpoint, Some(&params), None, Method::POST)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
         let resp = self
             .post(url, Some(headers), Some(params))
             .await?
@@ -277,9 +249,7 @@ impl Kucoin {
         if let Some(c) = chain {
             params.insert(String::from("chain"), c.to_string());
         }
-        let headers = self
-            .sign_headers(endpoint, Some(&params), None, Method::POST)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
         let resp = self
             .post(url, Some(headers), Some(params))
             .await?
@@ -301,9 +271,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -340,9 +308,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -379,9 +345,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -418,9 +382,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -457,9 +419,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -478,9 +438,7 @@ impl Kucoin {
         }
         let query = format_query(&params);
         let url = format!("{}{}{}", &self.prefix, endpoint, query);
-        let headers = self
-            .sign_headers(endpoint, None, Some(query), Method::GET)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, Some(query), Method::GET)?;
         let resp = self.get(url, Some(headers)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -515,9 +473,7 @@ impl Kucoin {
         if let Some(c) = chain {
             params.insert(String::from("chain"), c.to_string());
         }
-        let headers = self
-            .sign_headers(endpoint, Some(&params), None, Method::POST)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
         let resp = self.post(url, Some(headers), Some(params)).await?;
         let api_data = resp.json().await?;
         Ok(api_data)
@@ -526,9 +482,7 @@ impl Kucoin {
     pub async fn cancel_withdrawal(&self, withdrawal_id: &str) -> Result<String, Error> {
         let endpoint = format!("/api/v1/withdrawals/{}", withdrawal_id);
         let url = format!("{}{}", &self.prefix, endpoint);
-        let headers = self
-            .sign_headers(endpoint, None, None, Method::DELETE)
-            .unwrap();
+        let headers = self.sign_headers(endpoint, None, None, Method::DELETE)?;
         let resp = self.delete(url, Some(headers)).await?;
         let api_data = resp.text().await?;
         Ok(api_data)

@@ -8,6 +8,10 @@ pub enum Error {
     HTTP(#[from] reqwest::Error),
     #[error("Failed to join async task error")]
     Join(#[from] tokio::task::JoinError),
+    #[error("Failed to parse url")]
+    ParseUrl(#[from] url::ParseError),
+    #[error("Failed to parse header value")]
+    InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
     #[error("Generic error")]
     Generic(#[from] anyhow::Error),
 }

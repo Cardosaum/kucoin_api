@@ -69,7 +69,7 @@ impl Kucoin {
     // Generic get request for internal library use.
     // Matches credentials for signed vs. unsigned API calls
     pub async fn get(&self, url: String, sign: Option<HeaderMap>) -> Result<reqwest::Response> {
-        let req_url = reqwest::Url::parse(&url).unwrap();
+        let req_url = reqwest::Url::parse(&url)?;
         match sign {
             Some(sign) => {
                 let resp = self.client.get(req_url).headers(sign).send().await?;
@@ -96,7 +96,7 @@ impl Kucoin {
         sign: Option<HeaderMap>,
         params: Option<HashMap<String, String>>,
     ) -> Result<reqwest::Response> {
-        let req_url = reqwest::Url::parse(&url).unwrap();
+        let req_url = reqwest::Url::parse(&url)?;
         if let Some(s) = sign {
             if let Some(p) = params {
                 let resp = self
@@ -127,7 +127,7 @@ impl Kucoin {
     }
 
     pub async fn delete(&self, url: String, sign: Option<HeaderMap>) -> Result<reqwest::Response> {
-        let req_url = reqwest::Url::parse(&url).unwrap();
+        let req_url = reqwest::Url::parse(&url)?;
         if let Some(s) = sign {
             let resp = self.client.delete(req_url).headers(s).send().await?;
             if resp.status().is_success() {
@@ -207,23 +207,23 @@ impl Kucoin {
         let passphrase_digest = encode(passphrase_bytes);
         headers.insert(
             HeaderName::from_static("kc-api-key"),
-            HeaderValue::from_str(api_key).unwrap(),
+            HeaderValue::from_str(api_key)?,
         );
         headers.insert(
             HeaderName::from_static("kc-api-sign"),
-            HeaderValue::from_str(&sign_digest).unwrap(),
+            HeaderValue::from_str(&sign_digest)?,
         );
         headers.insert(
             HeaderName::from_static("kc-api-timestamp"),
-            HeaderValue::from_str(&nonce).unwrap(),
+            HeaderValue::from_str(&nonce)?,
         );
         headers.insert(
             HeaderName::from_static("kc-api-passphrase"),
-            HeaderValue::from_str(&passphrase_digest).unwrap(),
+            HeaderValue::from_str(&passphrase_digest)?,
         );
         headers.insert(
             HeaderName::from_static("kc-api-key-version"),
-            HeaderValue::from_str("2").unwrap(),
+            HeaderValue::from_str("2")?,
         );
         Ok(headers)
     }
