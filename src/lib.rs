@@ -230,8 +230,6 @@ pub use serde_json;
 
 #[macro_use]
 pub extern crate serde_derive;
-#[macro_use]
-pub extern crate failure;
 
 /// Main Kucoin API Client w/ All Endpoints
 pub mod client;

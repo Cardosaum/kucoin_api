@@ -2,7 +2,7 @@ use reqwest::header;
 use std::collections::HashMap;
 
 use super::client::Kucoin;
-use super::error::APIError;
+use super::error::Error;
 use super::model::user::{
     AccountHolds, AccountId, AccountInfo, AccountType, Accounts, DepositAddress, DepositList,
     DepositListV1, OrderId, SingleAccount, SubAccountBalances, TransferableBalance, UserInfo,
@@ -12,7 +12,7 @@ use super::model::{APIData, APIDatum, Method, Pagination};
 use super::utils::format_query;
 
 impl Kucoin {
-    pub async fn get_user_subaccount_info(&self) -> Result<APIData<UserInfo>, APIError> {
+    pub async fn get_user_subaccount_info(&self) -> Result<APIData<UserInfo>, Error> {
         let endpoint = String::from("/api/v1/sub/user");
         let url = format!("{}{}", &self.prefix, endpoint);
         let header = self
@@ -26,7 +26,7 @@ impl Kucoin {
         &self,
         account_type: AccountType,
         currency: &str,
-    ) -> Result<APIDatum<AccountId>, APIError> {
+    ) -> Result<APIDatum<AccountId>, Error> {
         let endpoint = String::from("/api/v1/accounts");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -51,7 +51,7 @@ impl Kucoin {
         &self,
         currency: Option<&str>,
         acct_type: Option<&str>,
-    ) -> Result<APIData<Accounts>, APIError> {
+    ) -> Result<APIData<Accounts>, Error> {
         let mut params: HashMap<String, String> = HashMap::new();
         let headers: header::HeaderMap;
         let url: String;
@@ -78,7 +78,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_account(&self, account_id: &str) -> Result<APIDatum<SingleAccount>, APIError> {
+    pub async fn get_account(&self, account_id: &str) -> Result<APIDatum<SingleAccount>, Error> {
         let endpoint = format!("/api/v1/accounts/{}", account_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -95,7 +95,7 @@ impl Kucoin {
         end_at: Option<i64>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<AccountInfo>>, APIError> {
+    ) -> Result<APIDatum<Pagination<AccountInfo>>, Error> {
         let endpoint = format!("/api/v1/accounts/{}/ledgers", account_id);
         let url: String;
         let headers: header::HeaderMap;
@@ -133,7 +133,7 @@ impl Kucoin {
         account_id: &str,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<AccountHolds>>, APIError> {
+    ) -> Result<APIDatum<Pagination<AccountHolds>>, Error> {
         let endpoint = format!("/api/v1/accounts/{}/holds", account_id);
         let url: String;
         let headers: header::HeaderMap;
@@ -163,7 +163,7 @@ impl Kucoin {
     pub async fn get_subaccount_balances(
         &self,
         account_id: &str,
-    ) -> Result<APIDatum<SubAccountBalances>, APIError> {
+    ) -> Result<APIDatum<SubAccountBalances>, Error> {
         let endpoint = format!("/api/v1/sub-accounts/{}", account_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -173,9 +173,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_all_subaccount_balances(
-        &self,
-    ) -> Result<APIData<SubAccountBalances>, APIError> {
+    pub async fn get_all_subaccount_balances(&self) -> Result<APIData<SubAccountBalances>, Error> {
         let endpoint = String::from("/api/v1/sub-accounts");
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -189,7 +187,7 @@ impl Kucoin {
         &self,
         currency: &str,
         account_type: AccountType,
-    ) -> Result<APIDatum<TransferableBalance>, APIError> {
+    ) -> Result<APIDatum<TransferableBalance>, Error> {
         let mut endpoint = format! {"/api/v1/accounts/transferable?currency={}", currency};
         match account_type {
             AccountType::Main => endpoint.push_str("&type=MAIN"),
@@ -214,7 +212,7 @@ impl Kucoin {
         sub_user_id: &str,
         account_type: Option<&str>,
         sub_account_type: Option<&str>,
-    ) -> Result<APIDatum<OrderId>, APIError> {
+    ) -> Result<APIDatum<OrderId>, Error> {
         let endpoint = String::from("/api/v2/accounts/sub-transfer");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -247,7 +245,7 @@ impl Kucoin {
         from: &str,
         to: &str,
         amount: &str,
-    ) -> Result<APIDatum<OrderId>, APIError> {
+    ) -> Result<APIDatum<OrderId>, Error> {
         let endpoint = String::from("/api/v2/accounts/inner-transfer");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -271,7 +269,7 @@ impl Kucoin {
         &self,
         currency: &str,
         chain: Option<&str>,
-    ) -> Result<APIDatum<DepositAddress>, APIError> {
+    ) -> Result<APIDatum<DepositAddress>, Error> {
         let endpoint = String::from("/api/v1/deposit-addresses");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -294,7 +292,7 @@ impl Kucoin {
         &self,
         currency: &str,
         chain: Option<&str>,
-    ) -> Result<APIDatum<DepositAddress>, APIError> {
+    ) -> Result<APIDatum<DepositAddress>, Error> {
         let endpoint = String::from("/api/v2/deposit-addresses");
         let mut params: HashMap<String, String> = HashMap::new();
         params.insert(String::from("currency"), currency.to_string());
@@ -319,7 +317,7 @@ impl Kucoin {
         status: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<DepositList>>, APIError> {
+    ) -> Result<APIDatum<Pagination<DepositList>>, Error> {
         let endpoint = String::from("/api/v1/deposits");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -358,7 +356,7 @@ impl Kucoin {
         status: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<DepositListV1>>, APIError> {
+    ) -> Result<APIDatum<Pagination<DepositListV1>>, Error> {
         let endpoint = String::from("/api/v1/deposits");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -397,7 +395,7 @@ impl Kucoin {
         status: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<WithdrawalList>>, APIError> {
+    ) -> Result<APIDatum<Pagination<WithdrawalList>>, Error> {
         let endpoint = String::from("/api/v1/withdrawals");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -436,7 +434,7 @@ impl Kucoin {
         status: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<WithdrawalListV1>>, APIError> {
+    ) -> Result<APIDatum<Pagination<WithdrawalListV1>>, Error> {
         let endpoint = String::from("/api/v1/withdrawals");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -471,7 +469,7 @@ impl Kucoin {
         &self,
         currency: &str,
         chain: Option<&str>,
-    ) -> Result<APIDatum<WithdrawalQuotas>, APIError> {
+    ) -> Result<APIDatum<WithdrawalQuotas>, Error> {
         let endpoint = String::from("/api/v1/withdrawals/quotas");
         let mut params: HashMap<String, String> = HashMap::new();
         params.insert(String::from("currency"), currency.to_string());
@@ -498,7 +496,7 @@ impl Kucoin {
         is_inner: Option<bool>,
         remark: Option<&str>,
         chain: Option<&str>,
-    ) -> Result<APIDatum<WithdrawalId>, APIError> {
+    ) -> Result<APIDatum<WithdrawalId>, Error> {
         let endpoint = String::from("/api/v1/withdrawals");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -525,7 +523,7 @@ impl Kucoin {
         Ok(api_data)
     }
 
-    pub async fn cancel_withdrawal(&self, withdrawal_id: &str) -> Result<String, APIError> {
+    pub async fn cancel_withdrawal(&self, withdrawal_id: &str) -> Result<String, Error> {
         let endpoint = format!("/api/v1/withdrawals/{}", withdrawal_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self

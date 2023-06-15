@@ -12,7 +12,6 @@ use tokio::time;
 use tokio_tungstenite::{connect_async, tungstenite::Message, WebSocketStream};
 use url::Url;
 
-use failure;
 use serde_json;
 use std::{
     pin::Pin,
@@ -20,7 +19,7 @@ use std::{
 };
 
 use crate::client::Kucoin;
-use crate::error::APIError;
+use crate::error::{Error, Result};
 use crate::model::websocket::{
     DefaultMsg, InstanceServers, KucoinWebsocketMsg, Subscribe, WSTopic, WSType,
 };
@@ -42,13 +41,13 @@ pub struct KucoinWebsocket {
 }
 
 impl Stream for KucoinWebsocket {
-    type Item = Result<KucoinWebsocketMsg, APIError>;
+    type Item = Result<KucoinWebsocketMsg>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match self.as_mut().project().streams.poll_next(cx) {
             Poll::Ready(Some((y, _))) => match y {
                 StreamYield::Item(item) => {
                     // let heartbeat = self.heartbeats.get_mut(&token).unwrap();
-                    Poll::Ready({ Some(item.map_err(APIError::Websocket).and_then(parse_message)) })
+                    Poll::Ready(Some(item.map_err(Error::Websocket).and_then(parse_message)))
                 }
                 StreamYield::Finished(_) => Poll::Pending,
             },
@@ -59,7 +58,7 @@ impl Stream for KucoinWebsocket {
 }
 
 impl KucoinWebsocket {
-    pub async fn subscribe(&mut self, url: String, ws_topic: Vec<WSTopic>) -> Result<(), APIError> {
+    pub async fn subscribe(&mut self, url: String, ws_topic: Vec<WSTopic>) -> Result<()> {
         let endpoint = Url::parse(&url);
         if endpoint.is_err() {
             Err(anyhow!("invalid url"))?
@@ -93,16 +92,16 @@ impl KucoinWebsocket {
                     .lock()
                     .await
                     .send(Message::Text(serde_json::to_string(&ping).unwrap()))
-                    .map_err(APIError::Websocket)
+                    .map_err(Error::Websocket)
                     .await;
 
                 if let Err(e) = resp {
                     match e {
-                        APIError::Websocket(e) => {
-                            format_err!("Error sending Ping: {}", e);
+                        Error::Websocket(e) => {
+                            eprintln!("Error sending Ping: {e}");
                             break;
                         }
-                        _ => format_err!("None websocket error sending Ping: {}", e),
+                        _ => eprintln!("None websocket error sending Ping: {e}"),
                     };
                 };
             }
@@ -123,7 +122,7 @@ impl KucoinWebsocket {
     }
 }
 
-fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg, APIError> {
+fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg> {
     match msg {
         Message::Text(msg) => {
             if msg.contains("\"type\":\"welcome\"") || msg.contains("\"type\":\"ack\"") {
@@ -265,9 +264,7 @@ fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg, APIError> {
     }
 }
 
-pub async fn close_socket(
-    heartbeat: &mut tokio::task::JoinHandle<()>,
-) -> Result<(), failure::Error> {
+pub async fn close_socket(heartbeat: &mut tokio::task::JoinHandle<()>) -> Result<()> {
     heartbeat.await?;
     Ok(())
 }
@@ -277,7 +274,7 @@ impl Kucoin {
         KucoinWebsocket::default()
     }
 
-    pub async fn ws_bullet_private(&self) -> Result<APIDatum<InstanceServers>, APIError> {
+    pub async fn ws_bullet_private(&self) -> Result<APIDatum<InstanceServers>> {
         let endpoint = String::from("/api/v1/bullet-private");
 
         let url: String = format!("{}{}", &self.prefix, endpoint);
@@ -290,7 +287,7 @@ impl Kucoin {
         Ok(api_data)
     }
 
-    pub async fn ws_bullet_public(&self) -> Result<APIDatum<InstanceServers>, APIError> {
+    pub async fn ws_bullet_public(&self) -> Result<APIDatum<InstanceServers>> {
         let endpoint = String::from("/api/v1/bullet-public");
         let url: String = format!("{}{}", &self.prefix, endpoint);
         let header: header::HeaderMap = self
@@ -301,7 +298,7 @@ impl Kucoin {
         Ok(api_data)
     }
 
-    pub async fn get_socket_endpoint(&self, ws_type: WSType) -> Result<String, APIError> {
+    pub async fn get_socket_endpoint(&self, ws_type: WSType) -> Result<String> {
         let endpoint: String;
         let token: String;
         let timestamp = get_time();

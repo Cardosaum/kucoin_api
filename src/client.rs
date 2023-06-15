@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use base64::encode;
-use failure;
 use hmac::{Hmac, Mac};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde_json::json;
 use sha2::Sha256;
 
-use super::error::APIError;
+use super::error::Result;
 use super::model::Method;
 use super::utils::get_time;
 
@@ -51,10 +50,7 @@ pub struct Kucoin {
 }
 
 impl Kucoin {
-    pub fn new(
-        environment: KucoinEnv,
-        credentials: Option<Credentials>,
-    ) -> Result<Self, failure::Error> {
+    pub fn new(environment: KucoinEnv, credentials: Option<Credentials>) -> Result<Self> {
         let client = reqwest::Client::builder()
             // .use_rustls_tls()
             .timeout(Duration::from_secs(60))
@@ -72,11 +68,7 @@ impl Kucoin {
 
     // Generic get request for internal library use.
     // Matches credentials for signed vs. unsigned API calls
-    pub async fn get(
-        &self,
-        url: String,
-        sign: Option<HeaderMap>,
-    ) -> Result<reqwest::Response, APIError> {
+    pub async fn get(&self, url: String, sign: Option<HeaderMap>) -> Result<reqwest::Response> {
         let req_url = reqwest::Url::parse(&url).unwrap();
         match sign {
             Some(sign) => {
@@ -103,7 +95,7 @@ impl Kucoin {
         url: String,
         sign: Option<HeaderMap>,
         params: Option<HashMap<String, String>>,
-    ) -> Result<reqwest::Response, APIError> {
+    ) -> Result<reqwest::Response> {
         let req_url = reqwest::Url::parse(&url).unwrap();
         if let Some(s) = sign {
             if let Some(p) = params {
@@ -134,11 +126,7 @@ impl Kucoin {
         }
     }
 
-    pub async fn delete(
-        &self,
-        url: String,
-        sign: Option<HeaderMap>,
-    ) -> Result<reqwest::Response, APIError> {
+    pub async fn delete(&self, url: String, sign: Option<HeaderMap>) -> Result<reqwest::Response> {
         let req_url = reqwest::Url::parse(&url).unwrap();
         if let Some(s) = sign {
             let resp = self.client.delete(req_url).headers(s).send().await?;
@@ -160,7 +148,7 @@ impl Kucoin {
         params: Option<&HashMap<String, String>>,
         query: Option<String>,
         method: Method,
-    ) -> Result<HeaderMap, failure::Error> {
+    ) -> Result<HeaderMap> {
         let mut headers = HeaderMap::new();
         let nonce = get_time().to_string();
         let mut api_key: &str = "";

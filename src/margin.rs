@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::client::Kucoin;
-use super::error::APIError;
+use super::error::Error;
 use super::model::margin::{
     BorrowOrder, BorrowOrderId, LendHistory, LendMarketData, LendOrder, LendRecord, MarginAccounts,
     MarginHistory, MarginInfo, MarginOrder, MarginOrderId, MarginTradeData, MarkPrice, RepayRecord,
@@ -11,21 +11,21 @@ use super::model::{APIData, APIDatum, Method, Pagination};
 use super::utils::format_query;
 
 impl Kucoin {
-    pub async fn get_mark_price(&self, symbol: &str) -> Result<APIDatum<MarkPrice>, APIError> {
+    pub async fn get_mark_price(&self, symbol: &str) -> Result<APIDatum<MarkPrice>, Error> {
         let endpoint = format!("/api/v1/mark-price/{}/current", symbol);
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;
         Ok(resp)
     }
 
-    pub async fn get_margin_config_info(&self) -> Result<APIDatum<MarginInfo>, APIError> {
+    pub async fn get_margin_config_info(&self) -> Result<APIDatum<MarginInfo>, Error> {
         let endpoint = String::from("/api/v1/margin/config");
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;
         Ok(resp)
     }
 
-    pub async fn get_margin_accounts(&self) -> Result<APIDatum<MarginAccounts>, APIError> {
+    pub async fn get_margin_accounts(&self) -> Result<APIDatum<MarginAccounts>, Error> {
         let endpoint = String::from("/api/v1/margin/account");
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -43,7 +43,7 @@ impl Kucoin {
         size: f64,
         max_rate: Option<f64>,
         term: Option<&str>,
-    ) -> Result<APIDatum<BorrowOrderId>, APIError> {
+    ) -> Result<APIDatum<BorrowOrderId>, Error> {
         let endpoint = String::from("/api/v1/margin/borrow");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -67,10 +67,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_borrow_order(
-        &self,
-        order_id: &str,
-    ) -> Result<APIDatum<BorrowOrder>, APIError> {
+    pub async fn get_borrow_order(&self, order_id: &str) -> Result<APIDatum<BorrowOrder>, Error> {
         let endpoint = format!("/api/v1/margin/borrow?orderId={}", order_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -85,7 +82,7 @@ impl Kucoin {
         currency: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<RepayRecord>>, APIError> {
+    ) -> Result<APIDatum<Pagination<RepayRecord>>, Error> {
         let endpoint = String::from("/api/v1/margin/borrow/outstanding");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -111,7 +108,7 @@ impl Kucoin {
         currency: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<RepaymentRecord>>, APIError> {
+    ) -> Result<APIDatum<Pagination<RepaymentRecord>>, Error> {
         let endpoint = String::from("/api/v1/margin/borrow/repaid");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -137,7 +134,7 @@ impl Kucoin {
         currency: &str,
         sequence: &str,
         size: f64,
-    ) -> Result<APIDatum<String>, APIError> {
+    ) -> Result<APIDatum<String>, Error> {
         let endpoint = String::from("/api/v1/margin/repay/all");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -160,7 +157,7 @@ impl Kucoin {
         currency: &str,
         trade_id: &str,
         size: f64,
-    ) -> Result<APIDatum<String>, APIError> {
+    ) -> Result<APIDatum<String>, Error> {
         let endpoint = String::from("/api/v1/margin/repay/single");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -184,7 +181,7 @@ impl Kucoin {
         size: f32,
         daily_int_rate: f32,
         term: i32,
-    ) -> Result<APIDatum<MarginOrderId>, APIError> {
+    ) -> Result<APIDatum<MarginOrderId>, Error> {
         let endpoint = String::from("/api/v1/margin/lend");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -203,7 +200,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn cancel_lend_order(&self, order_id: &str) -> Result<APIDatum<String>, APIError> {
+    pub async fn cancel_lend_order(&self, order_id: &str) -> Result<APIDatum<String>, Error> {
         let endpoint = format!("/api/v1/margin/lend/{}", order_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
@@ -220,7 +217,7 @@ impl Kucoin {
         retain_size: Option<f32>,
         daily_int_rate: Option<f32>,
         term: Option<i32>,
-    ) -> Result<APIDatum<String>, APIError> {
+    ) -> Result<APIDatum<String>, Error> {
         let endpoint = String::from("/api/v1/margin/toggle-auto-lend");
         let url = format!("{}{}", &self.prefix, endpoint);
         let mut params: HashMap<String, String> = HashMap::new();
@@ -251,7 +248,7 @@ impl Kucoin {
         currency: &str,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<MarginOrder>>, APIError> {
+    ) -> Result<APIDatum<Pagination<MarginOrder>>, Error> {
         let endpoint = String::from("/api/v1/margin/lend/active");
         let mut params: HashMap<String, String> = HashMap::new();
         params.insert(String::from("currency"), currency.to_string());
@@ -275,7 +272,7 @@ impl Kucoin {
         currency: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<MarginHistory>>, APIError> {
+    ) -> Result<APIDatum<Pagination<MarginHistory>>, Error> {
         let endpoint = String::from("/api/v1/margin/lend/done");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -301,7 +298,7 @@ impl Kucoin {
         currency: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<LendOrder>>, APIError> {
+    ) -> Result<APIDatum<Pagination<LendOrder>>, Error> {
         let endpoint = String::from("/api/v1/margin/lend/trade/unsettled");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -327,7 +324,7 @@ impl Kucoin {
         currency: Option<&str>,
         current_page: Option<i32>,
         page_size: Option<i32>,
-    ) -> Result<APIDatum<Pagination<LendHistory>>, APIError> {
+    ) -> Result<APIDatum<Pagination<LendHistory>>, Error> {
         let endpoint = String::from("/api/v1/margin/lend/trade/settled");
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(c) = currency {
@@ -351,7 +348,7 @@ impl Kucoin {
     pub async fn get_lend_record(
         &self,
         currency: Option<&str>,
-    ) -> Result<APIData<LendRecord>, APIError> {
+    ) -> Result<APIData<LendRecord>, Error> {
         let mut endpoint = String::from("/api/v1/margin/lend/assets");
         if let Some(c) = currency {
             endpoint.push_str(&format!("?currency={}", c));
@@ -368,7 +365,7 @@ impl Kucoin {
         &self,
         currency: &str,
         term: Option<i32>,
-    ) -> Result<APIData<LendMarketData>, APIError> {
+    ) -> Result<APIData<LendMarketData>, Error> {
         let mut endpoint = format!("/api/v1/margin/market?currency={}", currency);
         if let Some(t) = term {
             endpoint.push_str(&format!("term={}", t));
@@ -384,7 +381,7 @@ impl Kucoin {
     pub async fn get_margin_trade_data(
         &self,
         currency: &str,
-    ) -> Result<APIData<MarginTradeData>, APIError> {
+    ) -> Result<APIData<MarginTradeData>, Error> {
         let endpoint = format!("/api/v1/margin/trade/last?currency={}", currency);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self
