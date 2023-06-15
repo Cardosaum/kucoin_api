@@ -15,7 +15,6 @@ version = "1.4.6"
 
 [dependencies]
 base64 = "0.12.0"
-failure = "0.1.7"
 futures = "0.3.9"
 hmac = "0.7.1"
 pin-project = "1.0.5"
@@ -30,3 +29,5 @@ tokio-native-tls = "0.3.0"
 tokio-tungstenite = { version = "0.13.0", features = ["tls"] }
 tungstenite = "0.13.0"
 url = "2.1.1"
+thiserror = "1.0.40"
+anyhow = { version = "1.0.71", features = ["backtrace"] }

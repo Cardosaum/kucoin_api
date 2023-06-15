@@ -24,7 +24,7 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    pub fn new(api_key: &str, secret_key: &str, passphrase: &str) -> Self {
+    pub fn new(api_key: impl ToString, secret_key: impl ToString, passphrase: impl ToString) -> Self {
         Credentials {
             api_key: api_key.to_string(),
             secret_key: secret_key.to_string(),

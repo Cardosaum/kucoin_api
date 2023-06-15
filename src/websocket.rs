@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::anyhow;
 use futures::{prelude::*, stream::SplitStream, StreamExt};
 use pin_project::*;
 use reqwest::header;
@@ -66,7 +67,7 @@ impl KucoinWebsocket {
     pub async fn subscribe(&mut self, url: String, ws_topic: Vec<WSTopic>) -> Result<(), APIError> {
         let endpoint = Url::parse(&url);
         if endpoint.is_err() {
-            return Err(APIError::Other("invalid url".to_string()));
+            Err(anyhow!("invalid url"))?
         }
         let endpoint = endpoint.unwrap();
 
@@ -256,20 +257,16 @@ fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg, APIError> {
                         &msg,
                     )?))
                 } else {
-                    Err(APIError::Other(
-                        "No KucoinWebSocketMsg type to parse".to_string(),
-                    ))
+                    Err(anyhow!("No KucoinWebSocketMsg type to parse"))?
                 }
             } else {
-                Err(APIError::Other(
-                    "No KucoinWebSocketMsg type to parse".to_string(),
-                ))
+                Err(anyhow!("No KucoinWebSocketMsg type to parse"))?
             }
         }
         Message::Binary(b) => Ok(KucoinWebsocketMsg::Binary(b)),
         Message::Pong(..) => Ok(KucoinWebsocketMsg::Pong),
         Message::Ping(..) => Ok(KucoinWebsocketMsg::Ping),
-        Message::Close(..) => Err(APIError::Other("Socket closed error".to_string())),
+        Message::Close(..) => Err(anyhow!("Socket closed error"))?,
     }
 }
 
@@ -321,7 +318,7 @@ impl Kucoin {
                     endpoint = r.instance_servers[0].endpoint.to_owned();
                 } else {
                     let message = resp.msg.unwrap_or("no data or message".to_string());
-                    return Err(APIError::Other(message));
+                    return Err(anyhow!("Error getting private endpoint: {}", message))?;
                 }
             }
             WSType::Public => {
@@ -331,12 +328,12 @@ impl Kucoin {
                     endpoint = r.instance_servers[0].endpoint.to_owned();
                 } else {
                     let message = resp.msg.unwrap_or("no data or message".to_string());
-                    return Err(APIError::Other(message));
+                    return Err(anyhow!("Error getting public endpoint: {}", message))?;
                 }
             }
         }
         if endpoint.is_empty() || token.is_empty() {
-            return Err(APIError::Other("Missing endpoint/token".to_string()));
+            Err(anyhow!("Missing endpoint/token"))?
         }
         let url = format!(
             "{}?token={}&[connectId={}]?acceptUserMessage=\"true\"",
