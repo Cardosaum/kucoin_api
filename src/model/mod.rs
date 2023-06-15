@@ -44,8 +44,8 @@ pub struct Pagination<T> {
 
 impl<T> std::fmt::Display for APIData<T>
 where
-    T: Serialize
- {
+    T: Serialize,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         serde_json::to_string(self).unwrap().fmt(f)
     }
@@ -53,8 +53,8 @@ where
 
 impl<T> std::fmt::Display for APIDatum<T>
 where
-    T: Serialize
- {
+    T: Serialize,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         serde_json::to_string(self).unwrap().fmt(f)
     }
@@ -62,9 +62,9 @@ where
 
 impl<T> std::fmt::Display for Pagination<T>
 where
-    T: Serialize
- {
+    T: Serialize,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         serde_json::to_string(self).unwrap().fmt(f)
     }
-}   
+}

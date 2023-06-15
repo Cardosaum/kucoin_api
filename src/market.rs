@@ -2,14 +2,14 @@ use std::collections::HashMap;
 
 use reqwest::header;
 
-use super::client::Kucoin;
-use super::error::Result;
-use super::model::market::{
-    AllTickers, AtomicOrderBook, Chain, Currency, DailyStats, Klines, OrderBook, OrderBookType,
-    SymbolList, Ticker, TradeHistories,
+use crate::client::Kucoin;
+use crate::error::Result;
+use crate::model::market::{
+    AllTickers, Candle, Chain, Currency, DailyStats, Klines, OrderBook,
+    OrderBookType, SymbolList, Ticker, TradeHistories,
 };
-use super::model::{APIData, APIDatum, Method};
-use super::utils::format_query;
+use crate::model::{APIData, APIDatum, Method};
+use crate::utils::format_query;
 
 impl Kucoin {
     pub async fn get_symbol_list(&self, market: Option<&str>) -> Result<APIData<SymbolList>> {
@@ -87,33 +87,19 @@ impl Kucoin {
 
     pub async fn get_klines(
         &self,
-        klines: Klines,
-        symbol: &str,
-        start_at: Option<i64>,
-        end_at: Option<i64>,
-    ) -> Result<APIData<Vec<String>>> {
+        klines: &Klines,
+        symbol: impl AsRef<str>,
+        start_at: Option<u64>,
+        end_at: Option<u64>,
+    ) -> Result<APIData<Candle>> {
         let mut endpoint = String::from("/api/v1/market/candles?");
-        match klines {
-            Klines::K1min => endpoint.push_str("type=1min"),
-            Klines::K3min => endpoint.push_str("type=3min"),
-            Klines::K5min => endpoint.push_str("type=5min"),
-            Klines::K15min => endpoint.push_str("type=15min"),
-            Klines::K30min => endpoint.push_str("type=30min"),
-            Klines::K1hour => endpoint.push_str("type=1hour"),
-            Klines::K2hour => endpoint.push_str("type=2hour"),
-            Klines::K4hour => endpoint.push_str("type=4hour"),
-            Klines::K6hour => endpoint.push_str("type=6hour"),
-            Klines::K8hour => endpoint.push_str("type=8hour"),
-            Klines::K12hour => endpoint.push_str("type=12hour"),
-            Klines::K1day => endpoint.push_str("type=1day"),
-            Klines::K1week => endpoint.push_str("type=1week"),
-        }
-        endpoint.push_str(&format!("&symbol={}", symbol));
+        endpoint.push_str(&format!("type={klines}", klines = klines.as_str()));
+        endpoint.push_str(&format!("&symbol={}", symbol.as_ref()));
         if let Some(t) = start_at {
-            endpoint.push_str(&format!("&startAt={}", t));
+            endpoint.push_str(&format!("&startAt={t}"));
         }
         if let Some(t) = end_at {
-            endpoint.push_str(&format!("&endAt={}", t));
+            endpoint.push_str(&format!("&endAt={t}"));
         }
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;
@@ -134,21 +120,17 @@ impl Kucoin {
     ) -> Result<APIDatum<Currency>> {
         let mut endpoint = format!("/api/v1/currencies/{}", currency);
         if let Some(c) = chain {
-            match c {
-                Chain::OMNI => endpoint.push_str("?chain=OMNI"),
-                Chain::ERC20 => endpoint.push_str("?chain=ERC20"),
-                Chain::TRC20 => endpoint.push_str("?chain=TRC20"),
-            }
+            endpoint.push_str(&format!("?chain={c}"));
         }
-        let url = format!("{}{}", &self.prefix, endpoint);
+        let url = format!("{}{endpoint}", &self.prefix);
         let resp = self.get(url, None).await?.json().await?;
         Ok(resp)
     }
 
     pub async fn get_fiat_prices(
         &self,
-        base: Option<&str>,
-        currencies: Option<&str>,
+        base: Option<impl ToString>,
+        currencies: Option<impl ToString>,
     ) -> Result<APIDatum<HashMap<String, String>>> {
         let endpoint = String::from("/api/v1/prices");
         let mut params: HashMap<String, String> = HashMap::new();
