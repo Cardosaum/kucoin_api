@@ -216,17 +216,17 @@
 //!
 //! This project is open source and uses the MIT license. Feel free to utilize it in whatever way you see fit.
 
-pub extern crate futures;
-pub extern crate pin_project;
-pub extern crate reqwest;
-pub extern crate tokio;
-pub extern crate tokio_native_tls;
-pub extern crate tokio_tungstenite;
-pub extern crate tungstenite;
-pub extern crate url;
+pub use futures;
+pub use pin_project;
+pub use reqwest;
+pub use tokio;
+pub use tokio_native_tls;
+pub use tokio_tungstenite;
+pub use tungstenite;
+pub use url;
 
-pub extern crate serde;
-pub extern crate serde_json;
+pub use serde;
+pub use serde_json;
 
 #[macro_use]
 pub extern crate serde_derive;

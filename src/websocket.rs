@@ -50,7 +50,7 @@ impl Stream for KucoinWebsocket {
                     Poll::Ready({
                         Some(
                             item.map_err(APIError::Websocket)
-                                .and_then(|m| parse_message(m)),
+                                .and_then(parse_message),
                         )
                     })
                 }
@@ -335,7 +335,7 @@ impl Kucoin {
                 }
             }
         }
-        if endpoint == "" || token == "" {
+        if endpoint.is_empty() || token.is_empty() {
             return Err(APIError::Other("Missing endpoint/token".to_string()));
         }
         let url = format!(

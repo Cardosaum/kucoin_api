@@ -68,7 +68,7 @@ impl Kucoin {
             OrderBookType::L20 | OrderBookType::L100 => {
                 let url = format!("{}{}", &self.prefix, endpoint);
                 let resp: APIDatum<OrderBook> = self.get(url, None).await?.json().await?;
-                return Ok(resp)
+                Ok(resp)
             },
             OrderBookType::Full => {
                 let url = format!("{}{}", &self.prefix, endpoint);
@@ -76,7 +76,7 @@ impl Kucoin {
                     .sign_headers(endpoint, None, None, Method::GET)
                     .unwrap();
                 let resp = self.get(url, Some(headers)).await?.json().await?;
-                return Ok(resp)
+                Ok(resp)
             },
         }
     }
@@ -129,10 +129,10 @@ impl Kucoin {
         }
         endpoint.push_str(&format!("&symbol={}", symbol));
         if let Some(t) = start_at {
-            endpoint.push_str(&format!("&startAt={}", t.to_string()));
+            endpoint.push_str(&format!("&startAt={}", t));
         }
         if let Some(t) = end_at {
-            endpoint.push_str(&format!("&endAt={}", t.to_string()));
+            endpoint.push_str(&format!("&endAt={}", t));
         }
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;

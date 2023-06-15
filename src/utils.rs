@@ -37,8 +37,8 @@ mod test {
         params.insert("price".to_string(), 124.12.to_string());
 
         let query = format_query(&params);
-        assert_eq!(query.contains("symbol=BTC-USDT"), true);
-        assert_eq!(query.contains("price=124.12"), true);
-        assert_eq!(query.contains("quantity=0.51"), true);
+        assert!(query.contains("symbol=BTC-USDT"));
+        assert!(query.contains("price=124.12"));
+        assert!(query.contains("quantity=0.51"));
     }
 }
