@@ -78,16 +78,6 @@ impl Kucoin {
         }
     }
 
-    pub async fn get_atomic_orderbook(&self, symbol: &str) -> Result<APIDatum<AtomicOrderBook>> {
-        let endpoint = format!("/api/v3/market/orderbook/level3?symbol={}", symbol);
-        let url = format!("{}{}", &self.prefix, endpoint);
-        let headers: header::HeaderMap = self
-            .sign_headers(endpoint, None, None, Method::GET)
-            .unwrap();
-        let resp = self.get(url, Some(headers)).await?.json().await?;
-        Ok(resp)
-    }
-
     pub async fn get_trade_histories(&self, symbol: &str) -> Result<APIData<TradeHistories>> {
         let endpoint = format!("/api/v1/market/histories?symbol={}", symbol);
         let url = format!("{}{}", &self.prefix, endpoint);
