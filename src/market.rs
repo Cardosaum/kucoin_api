@@ -5,8 +5,8 @@ use reqwest::header;
 use super::client::Kucoin;
 use super::error::APIError;
 use super::model::market::{
-    AllTickers, Chain, Currency, DailyStats, Klines, OrderBook, AtomicOrderBook, OrderBookType, SymbolList, Ticker,
-    TradeHistories
+    AllTickers, AtomicOrderBook, Chain, Currency, DailyStats, Klines, OrderBook, OrderBookType,
+    SymbolList, Ticker, TradeHistories,
 };
 use super::model::{APIData, APIDatum, Method};
 use super::utils::format_query;
@@ -69,7 +69,7 @@ impl Kucoin {
                 let url = format!("{}{}", &self.prefix, endpoint);
                 let resp: APIDatum<OrderBook> = self.get(url, None).await?.json().await?;
                 Ok(resp)
-            },
+            }
             OrderBookType::Full => {
                 let url = format!("{}{}", &self.prefix, endpoint);
                 let headers: header::HeaderMap = self
@@ -77,7 +77,7 @@ impl Kucoin {
                     .unwrap();
                 let resp = self.get(url, Some(headers)).await?.json().await?;
                 Ok(resp)
-            },
+            }
         }
     }
 
