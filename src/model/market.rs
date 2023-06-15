@@ -182,3 +182,66 @@ pub enum Fiat {
     NZD,
     UAH,
 }
+
+impl std::fmt::Display for SymbolList
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for Ticker
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for AllTickers
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for Tick
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for DailyStats
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for OrderBook
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for AtomicOrderBook
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for TradeHistories
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl std::fmt::Display for Currency
+ {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
