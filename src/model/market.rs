@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display};
 
 use chrono::{DateTime, Utc};
 use serde_this_or_that::as_f64;
@@ -15,23 +15,23 @@ pub enum Error {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Candle {
     #[serde_as(as = "TimestampSeconds<String>")]
-    time: DateTime<Utc>,
+    pub time: DateTime<Utc>,
     #[serde(deserialize_with = "as_f64")]
-    open: f64,
+    pub open: f64,
     #[serde(deserialize_with = "as_f64")]
-    close: f64,
+    pub close: f64,
     #[serde(deserialize_with = "as_f64")]
-    high: f64,
+    pub high: f64,
     #[serde(deserialize_with = "as_f64")]
-    low: f64,
+    pub low: f64,
     #[serde(deserialize_with = "as_f64")]
-    volume: f64,
+    pub volume: f64,
     #[serde(deserialize_with = "as_f64")]
-    amount: f64,
+    pub amount: f64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -417,5 +417,11 @@ impl FromStr for &Klines {
             "1week" => Ok(&Klines::K1week),
             _ => Err(Error::InvalidOrderBookType),
         }
+    }
+}
+
+impl Display for Candle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
     }
 }

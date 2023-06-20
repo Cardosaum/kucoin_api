@@ -35,5 +35,7 @@ serde_as = "0.0.1"
 chrono = { version = "0.4.26", features = ["serde", "criterion"] }
 serde-this-or-that = { version = "0.4.2", features = ["derive"] }
 serde_with = { version = "3.0.0", features = ["json", "chrono_0_4"] }
-clap = { version = "4.3.4", features = ["derive", "env", "string"] }
+clap = { version = "4.3.4", features = ["derive", "env", "string", "cargo"] }
 dateparser = "0.2.0"
+sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls"] }
+

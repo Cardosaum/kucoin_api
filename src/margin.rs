@@ -346,10 +346,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_lend_record(
-        &self,
-        currency: Option<&str>,
-    ) -> Result<APIData<LendRecord>> {
+    pub async fn get_lend_record(&self, currency: Option<&str>) -> Result<APIData<LendRecord>> {
         let mut endpoint = String::from("/api/v1/margin/lend/assets");
         if let Some(c) = currency {
             endpoint.push_str(&format!("?currency={}", c));
@@ -379,10 +376,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_margin_trade_data(
-        &self,
-        currency: &str,
-    ) -> Result<APIData<MarginTradeData>> {
+    pub async fn get_margin_trade_data(&self, currency: &str) -> Result<APIData<MarginTradeData>> {
         let endpoint = format!("/api/v1/margin/trade/last?currency={}", currency);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self

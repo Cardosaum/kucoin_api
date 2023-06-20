@@ -5,8 +5,8 @@ use reqwest::header;
 use crate::client::Kucoin;
 use crate::error::Result;
 use crate::model::market::{
-    AllTickers, Candle, Chain, Currency, DailyStats, Klines, OrderBook,
-    OrderBookType, SymbolList, Ticker, TradeHistories,
+    AllTickers, Candle, Chain, Currency, DailyStats, Klines, OrderBook, OrderBookType, SymbolList,
+    Ticker, TradeHistories,
 };
 use crate::model::{APIData, APIDatum, Method};
 use crate::utils::format_query;

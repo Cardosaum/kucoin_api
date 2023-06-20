@@ -119,7 +119,7 @@
 //! ### Websocket Usage
 //!
 //! Websockets require several steps to initalize. A single websocket can accept up to 10 subscriptions,
-//! as per Kucoin limitations. Due to this, the instantiation of the socket takes a Vec\<[WSTopic](./kucoin/model/websocket/enum.WSTopic.html)\>.
+//! as per Kucoin limitations. Due to this, the instantiation of the socket takes a Vec<[`WSTopic`][WSTopic]>.
 //! The reason is because multiple subscriptions can be initialized from one call. Below is a simplified single subscription with a line-by-line
 //! short explanation including some basic options for specified error handling.
 //!
@@ -174,10 +174,10 @@
 //!     Ok(())
 //! }
 //! ```
-//! [`KucoinWebsocketMsg`](./kucoin/model/websocket/enum.KucoinWebsocketMsg.html) has all the message response types
+//! [`KucoinWebsocketMsg`][KucoinWebsocketMsg] has all the message response types
 //! available and can be referenced to identify desired endpoints.
 //!
-//! [`WSTopic`](./kucoin/model/websocket/enum.WSTopic.html) has all the available websocket topics/endpoints that are
+//! [`WSTopic`][WSTopic] has all the available websocket topics/endpoints that are
 //! available for subscription.
 //!
 //! Note that Level3 data has been separated by message type despite it requiring only a single subscription.
@@ -215,6 +215,9 @@
 //! ## License
 //!
 //! This project is open source and uses the MIT license. Feel free to utilize it in whatever way you see fit.
+//!
+//! [KucoinWebsocketMsg]: model::websocket::KucoinWebsocketMsg
+//! [WSTopic]: model::websocket::WSTopic
 
 pub use futures;
 pub use pin_project;

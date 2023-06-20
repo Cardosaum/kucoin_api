@@ -1,4 +1,12 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display, str::FromStr};
+
+use serde::Serialize;
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("Invalid websocket topic")]
+    InvalidWSTopic,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,6 +48,60 @@ pub enum WSTopic {
     TradeOrders,
 }
 
+impl WSTopic {
+    pub fn as_str(&self) -> &str {
+        match self {
+            WSTopic::Ticker(_) => "ticker",
+            WSTopic::AllTicker => "allTicker",
+            WSTopic::Snapshot(_) => "snapshot",
+            WSTopic::OrderBook(_) => "orderBook",
+            WSTopic::OrderBookDepth5(_) => "orderBookDepth5",
+            WSTopic::OrderBookDepth50(_) => "orderBookDepth50",
+            WSTopic::Match(_) => "match",
+            WSTopic::FullMatch(_) => "fullMatch",
+            WSTopic::Level3Public(_) => "level3public",
+            WSTopic::Level3Private(_) => "level3private",
+            WSTopic::IndexPrice(_) => "indexPrice",
+            WSTopic::MarketPrice(_) => "marketPrice",
+            WSTopic::OrderBookChange(_) => "orderBookChange",
+            WSTopic::StopOrder(_) => "stopOrder",
+            WSTopic::Balances => "balances",
+            WSTopic::DebtRatio => "debtRatio",
+            WSTopic::PositionChange => "positionChange",
+            WSTopic::MarginTradeOrder(_) => "marginTradeOrder",
+            WSTopic::TradeOrders => "tradeOrders",
+        }
+    }
+}
+
+impl FromStr for WSTopic {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ticker" => Ok(WSTopic::Ticker(vec![])),
+            "allTicker" => Ok(WSTopic::AllTicker),
+            "snapshot" => Ok(WSTopic::Snapshot("".to_string())),
+            "orderBook" => Ok(WSTopic::OrderBook(vec![])),
+            "orderBookDepth5" => Ok(WSTopic::OrderBookDepth5(vec![])),
+            "orderBookDepth50" => Ok(WSTopic::OrderBookDepth50(vec![])),
+            "match" => Ok(WSTopic::Match(vec![])),
+            "fullMatch" => Ok(WSTopic::FullMatch(vec![])),
+            "level3public" => Ok(WSTopic::Level3Public(vec![])),
+            "level3private" => Ok(WSTopic::Level3Private(vec![])),
+            "indexPrice" => Ok(WSTopic::IndexPrice(vec![])),
+            "marketPrice" => Ok(WSTopic::MarketPrice(vec![])),
+            "orderBookChange" => Ok(WSTopic::OrderBookChange(vec![])),
+            "stopOrder" => Ok(WSTopic::StopOrder(vec![])),
+            "balances" => Ok(WSTopic::Balances),
+            "debtRatio" => Ok(WSTopic::DebtRatio),
+            "positionChange" => Ok(WSTopic::PositionChange),
+            "marginTradeOrder" => Ok(WSTopic::MarginTradeOrder("".to_string())),
+            "tradeOrders" => Ok(WSTopic::TradeOrders),
+            _ => Err(Error::InvalidWSTopic),
+        }
+    }
+}
 pub enum WSType {
     Public,
     Private,
@@ -115,7 +177,7 @@ pub struct Subscribe {
     pub response: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct SymbolTicker {
     pub sequence: String,
@@ -537,4 +599,16 @@ pub struct TradeUpdate {
     pub remain_size: String,
     pub status: String,
     pub ts: i64,
+}
+
+impl Display for KucoinWebsocketMsg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
+}
+
+impl<T: Serialize> Display for WSResp<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self).unwrap().fmt(f)
+    }
 }
