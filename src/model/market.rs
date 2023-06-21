@@ -1,9 +1,5 @@
 use std::{fmt::Display, str::FromStr};
 
-use chrono::{DateTime, Utc};
-use serde_this_or_that::as_f64;
-use serde_with::{serde_as, TimestampSeconds};
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Invalid order book type")]
@@ -14,7 +10,6 @@ pub enum Error {
     InvalidChain,
 }
 
-#[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Candle {
