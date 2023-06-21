@@ -10,32 +10,30 @@ name = "kucoin_api"
 readme = "README.md"
 repository = "https://github.com/kanekoshoyu/kucoin_api"
 version = "1.4.6"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = { version = "1.0.71", features = ["backtrace"] }
 base64 = "0.12.0"
+chrono = { version = "0.4.26", features = ["serde", "criterion"] }
+clap = { version = "4.3.4", features = ["derive", "env", "string", "cargo"] }
+dateparser = "0.2.0"
 futures = "0.3.9"
 hmac = "0.7.1"
 pin-project = "1.0.5"
+reqwest = { version = "0.11.1", features = ["json", "rustls-tls"] }
 serde = "1.0.104"
+serde-this-or-that = { version = "0.4.2", features = ["derive"] }
+serde_as = "0.0.1"
 serde_derive = "1.0.104"
 serde_json = "1.0.48"
+serde_with = { version = "3.0.0", features = ["json", "chrono_0_4"] }
 sha2 = "0.8.1"
 streamunordered = "0.5"
-reqwest = { version = "0.11.1", features = ["json", "rustls-tls"] }
-tokio = { version = "1.27.0", features = ["full"]}
+thiserror = "1.0.40"
+tokio = { version = "1.27.0", features = ["full"] }
 tokio-native-tls = "0.3.0"
 tokio-tungstenite = { version = "0.13.0", features = ["tls"] }
 tungstenite = "0.13.0"
 url = "2.1.1"
-thiserror = "1.0.40"
-anyhow = { version = "1.0.71", features = ["backtrace"] }
-serde_as = "0.0.1"
-chrono = { version = "0.4.26", features = ["serde", "criterion"] }
-serde-this-or-that = { version = "0.4.2", features = ["derive"] }
-serde_with = { version = "3.0.0", features = ["json", "chrono_0_4"] }
-clap = { version = "4.3.4", features = ["derive", "env", "string", "cargo"] }
-dateparser = "0.2.0"
-sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls"] }
 

@@ -1,4 +1,4 @@
-use std::{str::FromStr, fmt::Display};
+use std::{fmt::Display, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use serde_this_or_that::as_f64;
@@ -15,23 +15,16 @@ pub enum Error {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Candle {
-    #[serde_as(as = "TimestampSeconds<String>")]
-    pub time: DateTime<Utc>,
-    #[serde(deserialize_with = "as_f64")]
-    pub open: f64,
-    #[serde(deserialize_with = "as_f64")]
-    pub close: f64,
-    #[serde(deserialize_with = "as_f64")]
-    pub high: f64,
-    #[serde(deserialize_with = "as_f64")]
-    pub low: f64,
-    #[serde(deserialize_with = "as_f64")]
-    pub volume: f64,
-    #[serde(deserialize_with = "as_f64")]
-    pub amount: f64,
+    pub time: String,
+    pub open: String,
+    pub close: String,
+    pub high: String,
+    pub low: String,
+    pub volume: String,
+    pub amount: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

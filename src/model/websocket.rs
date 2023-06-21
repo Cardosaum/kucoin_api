@@ -177,7 +177,7 @@ pub struct Subscribe {
     pub response: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SymbolTicker {
     pub sequence: String,
