@@ -3,6 +3,8 @@
 use serde::Serialize;
 pub mod margin;
 pub mod market;
+pub mod parameters;
+pub mod request;
 pub mod trade;
 pub mod user;
 pub mod websocket;

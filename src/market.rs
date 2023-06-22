@@ -5,8 +5,8 @@ use reqwest::header;
 use crate::client::Kucoin;
 use crate::error::Result;
 use crate::model::market::{
-    AllTickers, Candle, Chain, Currency, DailyStats, Klines, OrderBook, OrderBookType, SymbolList,
-    Ticker, TradeHistories,
+    AllTickers, Candle, Chain, Currency, DailyStats, OrderBook, OrderBookType, SymbolList, Ticker,
+    TradeHistories,
 };
 use crate::model::{APIData, APIDatum, Method};
 use crate::utils::format_query;
@@ -87,20 +87,9 @@ impl Kucoin {
 
     pub async fn get_klines(
         &self,
-        klines: &Klines,
-        symbol: impl AsRef<str>,
-        start_at: Option<u64>,
-        end_at: Option<u64>,
+        request: crate::model::request::market::CandleRequest,
     ) -> Result<APIData<Candle>> {
-        let mut endpoint = String::from("/api/v1/market/candles?");
-        endpoint.push_str(&format!("type={klines}", klines = klines.as_str()));
-        endpoint.push_str(&format!("&symbol={}", symbol.as_ref()));
-        if let Some(t) = start_at {
-            endpoint.push_str(&format!("&startAt={t}"));
-        }
-        if let Some(t) = end_at {
-            endpoint.push_str(&format!("&endAt={t}"));
-        }
+        let endpoint = request.get_endpoint();
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;
         Ok(resp)

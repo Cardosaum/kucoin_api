@@ -10,7 +10,7 @@ pub enum Error {
     InvalidChain,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Hash, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Candle {
     pub time: String,
@@ -125,23 +125,6 @@ pub struct TradeHistories {
     pub time: i64,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum Klines {
-    K1min,
-    K3min,
-    K5min,
-    K15min,
-    K30min,
-    K1hour,
-    K2hour,
-    K4hour,
-    K6hour,
-    K8hour,
-    K12hour,
-    K1day,
-    K1week,
-}
-
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Currency {
@@ -239,53 +222,6 @@ pub enum Fiat {
     UAH,
 }
 
-impl Klines {
-    pub const VARIANTS: [&'static str; 13] = [
-        "1min", "3min", "5min", "15min", "30min", "1hour", "2hour", "4hour", "6hour", "8hour",
-        "12hour", "1day", "1week",
-    ];
-
-    const MINUTE: u64 = 60;
-    const HOUR: u64 = 60 * 60;
-    const DAY: u64 = 60 * 60 * 24;
-    const WEEK: u64 = 60 * 60 * 24 * 7;
-    pub fn as_seconds(&self) -> u64 {
-        match self {
-            Klines::K1min => Self::MINUTE,
-            Klines::K3min => Self::MINUTE * 3,
-            Klines::K5min => Self::MINUTE * 5,
-            Klines::K15min => Self::MINUTE * 15,
-            Klines::K30min => Self::MINUTE * 30,
-            Klines::K1hour => Self::HOUR,
-            Klines::K2hour => Self::HOUR * 2,
-            Klines::K4hour => Self::HOUR * 4,
-            Klines::K6hour => Self::HOUR * 6,
-            Klines::K8hour => Self::HOUR * 8,
-            Klines::K12hour => Self::HOUR * 12,
-            Klines::K1day => Self::DAY,
-            Klines::K1week => Self::WEEK,
-        }
-    }
-
-    pub fn as_str(&self) -> &str {
-        match self {
-            Klines::K1min => "1min",
-            Klines::K3min => "3min",
-            Klines::K5min => "5min",
-            Klines::K15min => "15min",
-            Klines::K30min => "30min",
-            Klines::K1hour => "1hour",
-            Klines::K2hour => "2hour",
-            Klines::K4hour => "4hour",
-            Klines::K6hour => "6hour",
-            Klines::K8hour => "8hour",
-            Klines::K12hour => "12hour",
-            Klines::K1day => "1day",
-            Klines::K1week => "1week",
-        }
-    }
-}
-
 impl std::fmt::Display for SymbolList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         serde_json::to_string(self).unwrap().fmt(f)
@@ -340,12 +276,6 @@ impl std::fmt::Display for Currency {
     }
 }
 
-impl std::fmt::Display for Klines {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.as_str().fmt(f)
-    }
-}
-
 impl std::fmt::Display for Chain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.as_str().fmt(f)
@@ -372,37 +302,6 @@ impl FromStr for OrderBookType {
             "L20" => Ok(OrderBookType::L20),
             "L100" => Ok(OrderBookType::L100),
             "Full" => Ok(OrderBookType::Full),
-            _ => Err(Error::InvalidOrderBookType),
-        }
-    }
-}
-
-impl FromStr for Klines {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.to_string().parse()
-    }
-}
-
-impl FromStr for &Klines {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "1min" => Ok(&Klines::K1min),
-            "3min" => Ok(&Klines::K3min),
-            "5min" => Ok(&Klines::K5min),
-            "15min" => Ok(&Klines::K15min),
-            "30min" => Ok(&Klines::K30min),
-            "1hour" => Ok(&Klines::K1hour),
-            "2hour" => Ok(&Klines::K2hour),
-            "4hour" => Ok(&Klines::K4hour),
-            "6hour" => Ok(&Klines::K6hour),
-            "8hour" => Ok(&Klines::K8hour),
-            "12hour" => Ok(&Klines::K12hour),
-            "1day" => Ok(&Klines::K1day),
-            "1week" => Ok(&Klines::K1week),
             _ => Err(Error::InvalidOrderBookType),
         }
     }
