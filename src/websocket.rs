@@ -1,34 +1,40 @@
 use std::collections::HashMap;
+use std::pin::Pin;
+use std::task::Context;
+use std::task::Poll;
+use std::time::Duration;
 
 use anyhow::anyhow;
-use futures::{prelude::*, stream::SplitStream, StreamExt};
+use futures::prelude::*;
+use futures::stream::SplitStream;
+use futures::StreamExt;
 use pin_project::*;
 use reqwest::header;
-use std::time::Duration;
-use streamunordered::{StreamUnordered, StreamYield};
+use serde_json;
+use streamunordered::StreamUnordered;
+use streamunordered::StreamYield;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio::time;
-use tokio_tungstenite::{connect_async, tungstenite::Message, WebSocketStream};
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::WebSocketStream;
 use url::Url;
 
-use serde_json;
-use std::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-
 use crate::client::Kucoin;
-use crate::error::{Error, Result};
-use crate::model::websocket::{
-    DefaultMsg, InstanceServers, KucoinWebsocketMsg, Subscribe, WSTopic, WSType,
-};
-use crate::model::{APIDatum, Method};
+use crate::error::Error;
+use crate::error::Result;
+use crate::model::websocket::DefaultMsg;
+use crate::model::websocket::InstanceServers;
+use crate::model::websocket::KucoinWebsocketMsg;
+use crate::model::websocket::Subscribe;
+use crate::model::websocket::WSTopic;
+use crate::model::websocket::WSType;
+use crate::model::APIDatum;
+use crate::model::Method;
 use crate::utils::get_time;
 
-type WSStream = WebSocketStream<
-    tokio_tungstenite::stream::Stream<TcpStream, tokio_native_tls::TlsStream<TcpStream>>,
->;
+type WSStream = WebSocketStream<tokio_tungstenite::stream::Stream<TcpStream, tokio_native_tls::TlsStream<TcpStream>>>;
 pub type StoredStream = SplitStream<WSStream>;
 
 #[pin_project]
@@ -48,7 +54,7 @@ impl Stream for KucoinWebsocket {
                 StreamYield::Item(item) => {
                     // let heartbeat = self.heartbeats.get_mut(&token)?;
                     Poll::Ready(Some(item.map_err(Error::Websocket).and_then(parse_message)))
-                }
+                },
                 StreamYield::Finished(_) => Poll::Pending,
             },
             Poll::Ready(None) => panic!("No Stream Subscribed"),
@@ -73,21 +79,14 @@ impl KucoinWebsocket {
         for topic in ws_topic.iter() {
             let sub = Subscribe::new(topic);
 
-            sink_mutex
-                .lock()
-                .await
-                .send(Message::Text(serde_json::to_string(&sub)?))
-                .await?;
+            sink_mutex.lock().await.send(Message::Text(serde_json::to_string(&sub)?)).await?;
         }
 
         // Ping heartbeat
         tokio::spawn(async move {
             loop {
                 time::sleep(Duration::from_secs(30)).await;
-                let ping = DefaultMsg {
-                    id: get_time().to_string(),
-                    r#type: "ping".to_string(),
-                };
+                let ping = DefaultMsg { id: get_time().to_string(), r#type: "ping".to_string() };
                 let resp = sink_mutex
                     .lock()
                     .await
@@ -100,7 +99,7 @@ impl KucoinWebsocket {
                         Error::Websocket(e) => {
                             eprintln!("Error sending Ping: {e}");
                             break;
-                        }
+                        },
                         _ => eprintln!("None websocket error sending Ping: {e}"),
                     };
                 };
@@ -116,9 +115,7 @@ impl KucoinWebsocket {
 
     pub fn unsubscribe(&mut self, ws_topic: WSTopic) -> Option<StoredStream> {
         let streams = Pin::new(&mut self.streams);
-        self.subscriptions
-            .get(&ws_topic)
-            .and_then(|token| StreamUnordered::take(streams, *token))
+        self.subscriptions.get(&ws_topic).and_then(|token| StreamUnordered::take(streams, *token))
     }
 }
 
@@ -134,129 +131,75 @@ fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg> {
             } else if msg.contains("\"subject\":\"trade.ticker\"") {
                 Ok(KucoinWebsocketMsg::TickerMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"topic\":\"/market/ticker:all\"") {
-                Ok(KucoinWebsocketMsg::AllTickerMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::AllTickerMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.snapshot\"") {
                 Ok(KucoinWebsocketMsg::SnapshotMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l2update\"") {
-                Ok(KucoinWebsocketMsg::OrderBookMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::OrderBookMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("/market/match:") {
                 Ok(KucoinWebsocketMsg::MatchMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l3received\"") {
-                Ok(KucoinWebsocketMsg::Level3ReceivedMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::Level3ReceivedMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l3open\"") {
-                Ok(KucoinWebsocketMsg::Level3OpenMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::Level3OpenMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l3done\"") {
-                Ok(KucoinWebsocketMsg::Level3DoneMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::Level3DoneMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l3match\"") {
-                Ok(KucoinWebsocketMsg::Level3MatchMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::Level3MatchMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"trade.l3change\"") {
-                Ok(KucoinWebsocketMsg::Level3ChangeMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::Level3ChangeMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"level2\"") {
-                Ok(KucoinWebsocketMsg::OrderBookDepthMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::OrderBookDepthMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"received\"") {
-                Ok(KucoinWebsocketMsg::FullMatchReceivedMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::FullMatchReceivedMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"open\"") {
-                Ok(KucoinWebsocketMsg::FullMatchOpenMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::FullMatchOpenMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"done\"") {
-                Ok(KucoinWebsocketMsg::FullMatchDoneMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::FullMatchDoneMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"match\"") {
-                Ok(KucoinWebsocketMsg::FullMatchMatchMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::FullMatchMatchMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"subject\":\"update\"") {
-                Ok(KucoinWebsocketMsg::FullMatchChangeMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::FullMatchChangeMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("/indicator/index:") {
-                Ok(KucoinWebsocketMsg::IndexPriceMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::IndexPriceMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("/indicator/markPrice:") {
-                Ok(KucoinWebsocketMsg::MarketPriceMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::MarketPriceMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("/margin/fundingBook:") {
-                Ok(KucoinWebsocketMsg::OrderBookChangeMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::OrderBookChangeMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("\"type\":\"stop\"") || msg.contains("\"type\":\"activate\"") {
-                Ok(KucoinWebsocketMsg::StopOrderMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::StopOrderMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("/account/balance") {
                 Ok(KucoinWebsocketMsg::BalancesMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("debt.ratio") {
-                Ok(KucoinWebsocketMsg::DebtRatioMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::DebtRatioMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("position.status") {
-                Ok(KucoinWebsocketMsg::PositionChangeMsg(serde_json::from_str(
-                    &msg,
-                )?))
+                Ok(KucoinWebsocketMsg::PositionChangeMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("order.open") {
-                Ok(KucoinWebsocketMsg::MarginTradeOpenMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::MarginTradeOpenMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("order.update") {
-                Ok(KucoinWebsocketMsg::MarginTradeUpdateMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::MarginTradeUpdateMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("order.done") {
-                Ok(KucoinWebsocketMsg::MarginTradeDoneMsg(
-                    serde_json::from_str(&msg)?,
-                ))
+                Ok(KucoinWebsocketMsg::MarginTradeDoneMsg(serde_json::from_str(&msg)?))
             } else if msg.contains("error") {
                 Ok(KucoinWebsocketMsg::Error(msg))
             } else if msg.contains("\"topic\":\"/spotMarket/tradeOrders\"") {
                 if msg.contains("\"type\":\"open\"") {
-                    Ok(KucoinWebsocketMsg::TradeOpenMsg(serde_json::from_str(
-                        &msg,
-                    )?))
+                    Ok(KucoinWebsocketMsg::TradeOpenMsg(serde_json::from_str(&msg)?))
                 } else if msg.contains("\"type\":\"match\"") {
-                    Ok(KucoinWebsocketMsg::TradeMatchMsg(serde_json::from_str(
-                        &msg,
-                    )?))
+                    Ok(KucoinWebsocketMsg::TradeMatchMsg(serde_json::from_str(&msg)?))
                 } else if msg.contains("\"type\":\"filled\"") {
-                    Ok(KucoinWebsocketMsg::TradeFilledMsg(serde_json::from_str(
-                        &msg,
-                    )?))
+                    Ok(KucoinWebsocketMsg::TradeFilledMsg(serde_json::from_str(&msg)?))
                 } else if msg.contains("\"type\":\"canceled\"") {
-                    Ok(KucoinWebsocketMsg::TradeCanceledMsg(serde_json::from_str(
-                        &msg,
-                    )?))
+                    Ok(KucoinWebsocketMsg::TradeCanceledMsg(serde_json::from_str(&msg)?))
                 } else if msg.contains("\"type\":\"update\"") {
-                    Ok(KucoinWebsocketMsg::TradeUpdateMsg(serde_json::from_str(
-                        &msg,
-                    )?))
+                    Ok(KucoinWebsocketMsg::TradeUpdateMsg(serde_json::from_str(&msg)?))
                 } else {
                     Err(anyhow!("No KucoinWebSocketMsg type to parse"))?
                 }
             } else {
                 Err(anyhow!("No KucoinWebSocketMsg type to parse"))?
             }
-        }
+        },
         Message::Binary(b) => Ok(KucoinWebsocketMsg::Binary(b)),
         Message::Pong(..) => Ok(KucoinWebsocketMsg::Pong),
         Message::Ping(..) => Ok(KucoinWebsocketMsg::Ping),
@@ -308,7 +251,7 @@ impl Kucoin {
                     let message = resp.msg.unwrap_or("no data or message".to_string());
                     return Err(anyhow!("Error getting private endpoint: {}", message))?;
                 }
-            }
+            },
             WSType::Public => {
                 let resp = self.ws_bullet_public().await?;
                 if let Some(r) = &resp.data {
@@ -318,15 +261,12 @@ impl Kucoin {
                     let message = resp.msg.unwrap_or("no data or message".to_string());
                     return Err(anyhow!("Error getting public endpoint: {}", message))?;
                 }
-            }
+            },
         }
         if endpoint.is_empty() || token.is_empty() {
             Err(anyhow!("Missing endpoint/token"))?
         }
-        let url = format!(
-            "{}?token={}&[connectId={}]?acceptUserMessage=\"true\"",
-            endpoint, token, timestamp
-        );
+        let url = format!("{}?token={}&[connectId={}]?acceptUserMessage=\"true\"", endpoint, token, timestamp);
         Ok(url)
     }
 }
@@ -342,56 +282,50 @@ impl Subscribe {
             WSTopic::IndexPrice(ref symbols) => format!("/indicator/index:{}", symbols.join(",")),
             WSTopic::MarketPrice(ref symbols) => {
                 format!("/indicator/markPrice:{}", symbols.join(","))
-            }
+            },
             WSTopic::OrderBook(ref symbols) => format!("/market/level2:{}", symbols.join(",")),
             WSTopic::OrderBookChange(ref symbols) => {
                 format!("/margin/fundingBook:{}", symbols.join(","))
-            }
+            },
             WSTopic::OrderBookDepth5(ref symbols) => {
                 format!("/spotMarket/level2Depth5:{}", symbols.join(","))
-            }
+            },
             WSTopic::OrderBookDepth50(ref symbols) => {
                 format!("/spotMarket/level2Depth50:{}", symbols.join(","))
-            }
+            },
             WSTopic::Match(ref symbols) => format!("/market/match:{}", symbols.join(",")),
             WSTopic::Level3Public(ref symbols) => format!("/market/level3:{}", symbols.join(",")),
             WSTopic::FullMatch(ref symbols) => format!("/spotMarket/level3:{}", symbols.join(",")),
             WSTopic::Level3Private(ref symbols) => {
                 private_channel = true;
                 format!("/market/level3:{}", symbols.join(","))
-            }
+            },
             WSTopic::Balances => {
                 private_channel = true;
                 String::from("/account/balance")
-            }
+            },
             WSTopic::StopOrder(ref symbols) => {
                 private_channel = true;
                 format!("/market/level3:{}", symbols.join(","))
-            }
+            },
             WSTopic::DebtRatio => {
                 private_channel = true;
                 String::from("/margin/position")
-            }
+            },
             WSTopic::PositionChange => {
                 private_channel = true;
                 String::from("/margin/position")
-            }
+            },
             WSTopic::MarginTradeOrder(ref symbol) => {
                 private_channel = true;
                 format!("/margin/loan:{}", symbol)
-            }
+            },
             WSTopic::TradeOrders => {
                 private_channel = true;
                 String::from("/spotMarket/tradeOrders")
-            }
+            },
         };
 
-        Subscribe {
-            id,
-            r#type: String::from("subscribe"),
-            topic,
-            private_channel,
-            response: true,
-        }
+        Subscribe { id, r#type: String::from("subscribe"), topic, private_channel, response: true }
     }
 }

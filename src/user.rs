@@ -1,14 +1,30 @@
-use reqwest::header;
 use std::collections::HashMap;
+
+use reqwest::header;
 
 use super::client::Kucoin;
 use super::error::Error;
-use super::model::user::{
-    AccountHolds, AccountId, AccountInfo, AccountType, Accounts, DepositAddress, DepositList,
-    DepositListV1, OrderId, SingleAccount, SubAccountBalances, TransferableBalance, UserInfo,
-    WithdrawalId, WithdrawalList, WithdrawalListV1, WithdrawalQuotas,
-};
-use super::model::{APIData, APIDatum, Method, Pagination};
+use super::model::user::AccountHolds;
+use super::model::user::AccountId;
+use super::model::user::AccountInfo;
+use super::model::user::AccountType;
+use super::model::user::Accounts;
+use super::model::user::DepositAddress;
+use super::model::user::DepositList;
+use super::model::user::DepositListV1;
+use super::model::user::OrderId;
+use super::model::user::SingleAccount;
+use super::model::user::SubAccountBalances;
+use super::model::user::TransferableBalance;
+use super::model::user::UserInfo;
+use super::model::user::WithdrawalId;
+use super::model::user::WithdrawalList;
+use super::model::user::WithdrawalListV1;
+use super::model::user::WithdrawalQuotas;
+use super::model::APIData;
+use super::model::APIDatum;
+use super::model::Method;
+use super::model::Pagination;
 use super::utils::format_query;
 
 impl Kucoin {
@@ -35,11 +51,7 @@ impl Kucoin {
         };
         params.insert(String::from("currency"), currency.to_string());
         let header = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(header), Some(params))
-            .await?
-            .json()
-            .await?;
+        let resp = self.post(url, Some(header), Some(params)).await?.json().await?;
         Ok(resp)
     }
 
@@ -142,10 +154,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_subaccount_balances(
-        &self,
-        account_id: &str,
-    ) -> Result<APIDatum<SubAccountBalances>, Error> {
+    pub async fn get_subaccount_balances(&self, account_id: &str) -> Result<APIDatum<SubAccountBalances>, Error> {
         let endpoint = format!("/api/v1/sub-accounts/{}", account_id);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers = self.sign_headers(endpoint, None, None, Method::GET)?;
@@ -204,11 +213,7 @@ impl Kucoin {
             params.insert(String::from("subAccountType"), s.to_string());
         }
         let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(headers), Some(params))
-            .await?
-            .json()
-            .await?;
+        let resp = self.post(url, Some(headers), Some(params)).await?.json().await?;
         Ok(resp)
     }
 
@@ -229,11 +234,7 @@ impl Kucoin {
         params.insert(String::from("to"), to.to_string());
         params.insert(String::from("amount"), amount.to_string());
         let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(headers), Some(params))
-            .await?
-            .json()
-            .await?;
+        let resp = self.post(url, Some(headers), Some(params)).await?.json().await?;
         Ok(resp)
     }
 
@@ -250,11 +251,7 @@ impl Kucoin {
             params.insert(String::from("chain"), c.to_string());
         }
         let headers = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(headers), Some(params))
-            .await?
-            .json()
-            .await?;
+        let resp = self.post(url, Some(headers), Some(params)).await?.json().await?;
         Ok(resp)
     }
 

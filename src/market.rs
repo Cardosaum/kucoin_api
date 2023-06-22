@@ -4,11 +4,19 @@ use reqwest::header;
 
 use crate::client::Kucoin;
 use crate::error::Result;
-use crate::model::market::{
-    AllTickers, Candle, Chain, Currency, DailyStats, OrderBook, OrderBookType, SymbolList, Ticker,
-    TradeHistories,
-};
-use crate::model::{APIData, APIDatum, Method};
+use crate::model::market::AllTickers;
+use crate::model::market::Candle;
+use crate::model::market::Chain;
+use crate::model::market::Currency;
+use crate::model::market::DailyStats;
+use crate::model::market::OrderBook;
+use crate::model::market::OrderBookType;
+use crate::model::market::SymbolList;
+use crate::model::market::Ticker;
+use crate::model::market::TradeHistories;
+use crate::model::APIData;
+use crate::model::APIDatum;
+use crate::model::Method;
 use crate::utils::format_query;
 
 impl Kucoin {
@@ -51,11 +59,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_orderbook(
-        &self,
-        symbol: &str,
-        amount: OrderBookType,
-    ) -> Result<APIDatum<OrderBook>> {
+    pub async fn get_orderbook(&self, symbol: &str, amount: OrderBookType) -> Result<APIDatum<OrderBook>> {
         let endpoint = match amount {
             OrderBookType::L20 => format!("/api/v1/market/orderbook/level2_20?symbol={}", symbol),
             OrderBookType::L100 => format!("/api/v1/market/orderbook/level2_100?symbol={}", symbol),
@@ -66,15 +70,13 @@ impl Kucoin {
                 let url = format!("{}{}", &self.prefix, endpoint);
                 let resp: APIDatum<OrderBook> = self.get(url, None).await?.json().await?;
                 Ok(resp)
-            }
+            },
             OrderBookType::Full => {
                 let url = format!("{}{}", &self.prefix, endpoint);
-                let headers: header::HeaderMap = self
-                    .sign_headers(endpoint, None, None, Method::GET)
-                    .unwrap();
+                let headers: header::HeaderMap = self.sign_headers(endpoint, None, None, Method::GET).unwrap();
                 let resp = self.get(url, Some(headers)).await?.json().await?;
                 Ok(resp)
-            }
+            },
         }
     }
 
@@ -85,10 +87,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_klines(
-        &self,
-        request: crate::model::request::market::CandleRequest,
-    ) -> Result<APIData<Candle>> {
+    pub async fn get_klines(&self, request: crate::model::request::market::CandleRequest) -> Result<APIData<Candle>> {
         let endpoint = request.get_endpoint();
         let url = format!("{}{}", &self.prefix, endpoint);
         let resp = self.get(url, None).await?.json().await?;
@@ -102,11 +101,7 @@ impl Kucoin {
         Ok(resp)
     }
 
-    pub async fn get_currency(
-        &self,
-        currency: &str,
-        chain: Option<Chain>,
-    ) -> Result<APIDatum<Currency>> {
+    pub async fn get_currency(&self, currency: &str, chain: Option<Chain>) -> Result<APIDatum<Currency>> {
         let mut endpoint = format!("/api/v1/currencies/{}", currency);
         if let Some(c) = chain {
             endpoint.push_str(&format!("?chain={c}"));

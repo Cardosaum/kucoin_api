@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 pub fn get_time() -> u128 {
     let start = SystemTime::now();
-    let since_the_epoch = start
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
+    let since_the_epoch = start.duration_since(UNIX_EPOCH).expect("Time went backwards");
 
     since_the_epoch.as_millis()
 }
@@ -26,8 +25,9 @@ pub fn format_query<S: ::std::hash::BuildHasher>(params: &HashMap<String, String
 
 #[cfg(test)]
 mod test {
-    use crate::utils::format_query;
     use std::collections::HashMap;
+
+    use crate::utils::format_query;
     #[test]
     fn format_query_test() {
         let mut params: HashMap<String, String> = HashMap::new();

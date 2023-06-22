@@ -26,6 +26,7 @@ serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "1.0.48"
 sha2 = "0.8.1"
+sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-rustls", "json", "chrono", "time", "uuid"] }
 streamunordered = "0.5"
 thiserror = "1.0.40"
 tokio = { version = "1.27.0", features = ["full"] }

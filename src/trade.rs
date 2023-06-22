@@ -1,17 +1,25 @@
-use reqwest::header;
 use std::collections::HashMap;
+
+use reqwest::header;
 
 use super::client::Kucoin;
 use super::error::Error;
-use super::model::trade::{
-    CancelByClientOidResp, CancelResp, FillsInfo, HistoricalOrder, OrderInfo, OrderResp,
-};
-use super::model::{APIData, APIDatum, Method, Pagination};
+use super::model::trade::CancelByClientOidResp;
+use super::model::trade::CancelResp;
+use super::model::trade::FillsInfo;
+use super::model::trade::HistoricalOrder;
+use super::model::trade::OrderInfo;
+use super::model::trade::OrderResp;
+use super::model::APIData;
+use super::model::APIDatum;
+use super::model::Method;
+use super::model::Pagination;
 use super::utils::format_query;
 
 impl Kucoin {
-    /// Places a limit order. Takes required inputs directly and a Some<OrderOptionals> type, or None for
-    /// optional inputs. See OrderOptionals for build pattern usage to simplify generating optional params.
+    /// Places a limit order. Takes required inputs directly and a Some<OrderOptionals> type, or
+    /// None for optional inputs. See OrderOptionals for build pattern usage to simplify
+    /// generating optional params.
     pub async fn post_limit_order(
         &self,
         client_oid: &str,
@@ -33,21 +41,18 @@ impl Kucoin {
             let opts = parse_order(opt);
             params.extend(opts);
         };
-        let headers: header::HeaderMap =
-            self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(headers), Some(params))
-            .await?
-            .json()
-            .await?;
+        let headers: header::HeaderMap = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
+        let resp = self.post(url, Some(headers), Some(params)).await?.json().await?;
         Ok(resp)
     }
 
-    /// Places a market order. Takes required inputs directly and a Some<OrderOptionals> type, or None for
-    /// optional inputs. See OrderOptionals for build pattern usage to simplify generating optional params.
+    /// Places a market order. Takes required inputs directly and a Some<OrderOptionals> type, or
+    /// None for optional inputs. See OrderOptionals for build pattern usage to simplify
+    /// generating optional params.
     ///
-    /// Note that size is the amount in the base currency and funds is the amount in quote currency. Users
-    /// should only use one or the other the order will fail. One of the two is a required parameter.
+    /// Note that size is the amount in the base currency and funds is the amount in quote currency.
+    /// Users should only use one or the other the order will fail. One of the two is a required
+    /// parameter.
     pub async fn post_market_order(
         &self,
         client_oid: &str,
@@ -74,13 +79,8 @@ impl Kucoin {
             let opts = parse_order(opt);
             params.extend(opts);
         };
-        let headers: header::HeaderMap =
-            self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
-        let resp = self
-            .post(url, Some(headers), Some(params))
-            .await?
-            .json()
-            .await?;
+        let headers: header::HeaderMap = self.sign_headers(endpoint, Some(&params), None, Method::POST)?;
+        let resp = self.post(url, Some(headers), Some(params)).await?.json().await?;
         Ok(resp)
     }
 
@@ -94,10 +94,7 @@ impl Kucoin {
     }
 
     /// Cancels an order based on the provided order id (required).
-    pub async fn cancel_order_by_client_oid(
-        &self,
-        client_oid: &str,
-    ) -> Result<APIDatum<CancelByClientOidResp>, Error> {
+    pub async fn cancel_order_by_client_oid(&self, client_oid: &str) -> Result<APIDatum<CancelByClientOidResp>, Error> {
         let endpoint = format!("/api/v1/order/client-order/{}", client_oid);
         let url = format!("{}{}", &self.prefix, endpoint);
         let headers: header::HeaderMap = self.sign_headers(endpoint, None, None, Method::DELETE)?;
@@ -334,7 +331,8 @@ fn parse_order(optionals: OrderOptionals) -> HashMap<String, String> {
     params
 }
 
-/// OrderOptionals contains a builder pattern that can be used to more easily take advantage of optional inputs.
+/// OrderOptionals contains a builder pattern that can be used to more easily take advantage of
+/// optional inputs.
 ///
 /// Example:
 /// ``` rust
@@ -458,7 +456,8 @@ impl<'a> OrderOptionals<'a> {
     }
 }
 
-/// OrderInfoOptionals contains a builder pattern that can be used to more easily take advantage of optional inputs.
+/// OrderInfoOptionals contains a builder pattern that can be used to more easily take advantage of
+/// optional inputs.
 ///
 /// Example:
 /// ``` rust
@@ -563,7 +562,8 @@ impl<'a> OrderInfoOptionals<'a> {
     }
 }
 
-/// FillsOptionals contains a builder pattern that can be used to more easily take advantage of optional inputs.
+/// FillsOptionals contains a builder pattern that can be used to more easily take advantage of
+/// optional inputs.
 ///
 /// Example:
 /// ``` rust
@@ -669,7 +669,9 @@ impl<'a> FillsOptionals<'a> {
 
 #[cfg(test)]
 mod test {
-    use crate::trade::{FillsOptionals, OrderInfoOptionals, OrderOptionals};
+    use crate::trade::FillsOptionals;
+    use crate::trade::OrderInfoOptionals;
+    use crate::trade::OrderOptionals;
     #[test]
     fn use_build_pattern_all_order_optionals() {
         let options = OrderOptionals {
@@ -774,11 +776,8 @@ mod test {
             page_size: None,
         };
 
-        let build_options = OrderInfoOptionals::new()
-            .symbol("BTC-USDT")
-            .start_at(1_580_683_419_725)
-            .end_at(1_580_683_800_000)
-            .build();
+        let build_options =
+            OrderInfoOptionals::new().symbol("BTC-USDT").start_at(1_580_683_419_725).end_at(1_580_683_800_000).build();
 
         assert_eq!(options, build_options)
     }
@@ -826,11 +825,8 @@ mod test {
             page_size: None,
         };
 
-        let build_options = FillsOptionals::new()
-            .symbol("BTC-USDT")
-            .start_at(1_580_683_419_725)
-            .end_at(1_580_683_800_000)
-            .build();
+        let build_options =
+            FillsOptionals::new().symbol("BTC-USDT").start_at(1_580_683_419_725).end_at(1_580_683_800_000).build();
 
         assert_eq!(options, build_options)
     }

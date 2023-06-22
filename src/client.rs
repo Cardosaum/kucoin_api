@@ -1,10 +1,13 @@
-use reqwest;
 use std::collections::HashMap;
 use std::time::Duration;
 
 use base64::encode;
-use hmac::{Hmac, Mac};
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use hmac::Hmac;
+use hmac::Mac;
+use reqwest;
+use reqwest::header::HeaderMap;
+use reqwest::header::HeaderName;
+use reqwest::header::HeaderValue;
 use serde_json::json;
 use sha2::Sha256;
 
@@ -23,11 +26,7 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    pub fn new(
-        api_key: impl ToString,
-        secret_key: impl ToString,
-        passphrase: impl ToString,
-    ) -> Self {
+    pub fn new(api_key: impl ToString, secret_key: impl ToString, passphrase: impl ToString) -> Self {
         Credentials {
             api_key: api_key.to_string(),
             secret_key: secret_key.to_string(),
@@ -59,11 +58,7 @@ impl Kucoin {
             KucoinEnv::Live => String::from("https://api.kucoin.com"),
             KucoinEnv::Sandbox => String::from("https://openapi-sandbox.kucoin.com"),
         };
-        Ok(Kucoin {
-            credentials,
-            prefix,
-            client,
-        })
+        Ok(Kucoin { credentials, prefix, client })
     }
 
     // Generic get request for internal library use.
@@ -78,7 +73,7 @@ impl Kucoin {
                 } else {
                     Ok(resp)
                 }
-            }
+            },
             None => {
                 let resp = self.client.get(req_url).send().await?;
                 if resp.status().is_success() {
@@ -86,7 +81,7 @@ impl Kucoin {
                 } else {
                     Ok(resp)
                 }
-            }
+            },
         }
     }
 
@@ -99,13 +94,7 @@ impl Kucoin {
         let req_url = reqwest::Url::parse(&url)?;
         if let Some(s) = sign {
             if let Some(p) = params {
-                let resp = self
-                    .client
-                    .post(req_url)
-                    .headers(s)
-                    .json(&json!(p))
-                    .send()
-                    .await?;
+                let resp = self.client.post(req_url).headers(s).json(&json!(p)).send().await?;
                 if resp.status().is_success() {
                     Ok(resp)
                 } else {
@@ -160,7 +149,7 @@ impl Kucoin {
                 api_key = &c.api_key;
                 secret_key = &c.secret_key;
                 passphrase = &c.passphrase;
-            }
+            },
             None => (),
         }
         match method {
@@ -172,7 +161,7 @@ impl Kucoin {
                 } else {
                     str_to_sign = format!("{}{}{}", nonce, meth, endpoint)
                 }
-            }
+            },
             Method::POST => {
                 let meth = "POST";
                 if let Some(p) = params {
@@ -181,8 +170,8 @@ impl Kucoin {
                 } else {
                     str_to_sign = format!("{}{}{}", nonce, meth, endpoint)
                 }
-            }
-            Method::PUT => {}
+            },
+            Method::PUT => {},
             Method::DELETE => {
                 let meth = "DELETE";
                 if let Some(q) = query {
@@ -191,40 +180,23 @@ impl Kucoin {
                 } else {
                     str_to_sign = format!("{}{}{}", nonce, meth, endpoint)
                 }
-            }
+            },
         }
-        let mut hmac_sign =
-            HmacSha256::new_varkey(secret_key.as_bytes()).expect("HMAC can take key of any size");
+        let mut hmac_sign = HmacSha256::new_varkey(secret_key.as_bytes()).expect("HMAC can take key of any size");
         hmac_sign.input(str_to_sign.as_bytes());
         let sign_result = hmac_sign.result();
         let sign_bytes = sign_result.code();
         let sign_digest = encode(sign_bytes);
-        let mut hmac_passphrase =
-            HmacSha256::new_varkey(secret_key.as_bytes()).expect("HMAC can take key of any size");
+        let mut hmac_passphrase = HmacSha256::new_varkey(secret_key.as_bytes()).expect("HMAC can take key of any size");
         hmac_passphrase.input(passphrase.as_bytes());
         let passphrase_result = hmac_passphrase.result();
         let passphrase_bytes = passphrase_result.code();
         let passphrase_digest = encode(passphrase_bytes);
-        headers.insert(
-            HeaderName::from_static("kc-api-key"),
-            HeaderValue::from_str(api_key)?,
-        );
-        headers.insert(
-            HeaderName::from_static("kc-api-sign"),
-            HeaderValue::from_str(&sign_digest)?,
-        );
-        headers.insert(
-            HeaderName::from_static("kc-api-timestamp"),
-            HeaderValue::from_str(&nonce)?,
-        );
-        headers.insert(
-            HeaderName::from_static("kc-api-passphrase"),
-            HeaderValue::from_str(&passphrase_digest)?,
-        );
-        headers.insert(
-            HeaderName::from_static("kc-api-key-version"),
-            HeaderValue::from_str("2")?,
-        );
+        headers.insert(HeaderName::from_static("kc-api-key"), HeaderValue::from_str(api_key)?);
+        headers.insert(HeaderName::from_static("kc-api-sign"), HeaderValue::from_str(&sign_digest)?);
+        headers.insert(HeaderName::from_static("kc-api-timestamp"), HeaderValue::from_str(&nonce)?);
+        headers.insert(HeaderName::from_static("kc-api-passphrase"), HeaderValue::from_str(&passphrase_digest)?);
+        headers.insert(HeaderName::from_static("kc-api-key-version"), HeaderValue::from_str("2")?);
         Ok(headers)
     }
 }

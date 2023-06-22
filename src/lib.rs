@@ -2,35 +2,40 @@
 //! kucoin_api is an open source library API wrapper for the
 //! [Kucoin Cryptocurrency Exchange](https://www.kucoin.com/). It is derived from Eric Abraham's kucoin_rs.
 //!
-//! Trading cryptocurrencies is high risk and there are no guarentees towards the stability or effectiveness
-//! of this project. Comments, contributions, stars and donations are, however, all welcome.
+//! Trading cryptocurrencies is high risk and there are no guarentees towards the stability or
+//! effectiveness of this project. Comments, contributions, stars and donations are, however, all
+//! welcome.
 //!
 //! ## Description
 //!
-//! kucoin_api supports all currently available Kucoin REST and Websocket endpoints. It is designed to be
-//! async and relies primarily on the tokio async runtime, reqwest for the HTTP layer and tokio_tungstenite
-//! for the Websocket layer.
+//! kucoin_api supports all currently available Kucoin REST and Websocket endpoints. It is designed
+//! to be async and relies primarily on the tokio async runtime, reqwest for the HTTP layer and
+//! tokio_tungstenite for the Websocket layer.
 //!
 //! For the official API documentation visit [Kucoin Docs](https://docs.kucoin.com/).
 //!
-//! Please be aware that due to the nature of a number of endpoints, the response structs and input parameters of
-//! several requests may contain Option\<T\> and will require appropriate pattern matching. These generally coincide
-//! with optional input params which can be seen by visiting the official Kucoin API documentation noted above.
+//! Please be aware that due to the nature of a number of endpoints, the response structs and input
+//! parameters of several requests may contain Option\<T\> and will require appropriate pattern
+//! matching. These generally coincide with optional input params which can be seen by visiting the
+//! official Kucoin API documentation noted above.
 //!
-//! These project docs also provide details regarding necessary input parameters and response structs,
-//! helping to identify cases where Option\<T\> matching is and is not necessary.
+//! These project docs also provide details regarding necessary input parameters and response
+//! structs, helping to identify cases where Option\<T\> matching is and is not necessary.
 //!
 //! ## Getting Started
 //!
-//! The library can be used either directly through the git repository or by utilizing cargo and installing the desired version. Once
-//! the library is accessible, simply bring the extern crate into your project.
+//! The library can be used either directly through the git repository or by utilizing cargo and
+//! installing the desired version. Once the library is accessible, simply bring the extern crate
+//! into your project.
 //!
 //! If you want information on particular endpoints, please review the library documentation.
 //!
 //! ### Authorization
 //!
-//! Authorization is required for many of the endpoints. The [`Kucoin Client`](./kucoin/client/struct.Kucoin.html) handles all
-//! header construction but does require that the client is initialized with credentials to do so. To include credentials do the following:
+//! Authorization is required for many of the endpoints. The [`Kucoin
+//! Client`](./kucoin/client/struct.Kucoin.html) handles all header construction but does require
+//! that the client is initialized with credentials to do so. To include credentials do the
+//! following:
 //!
 //! ```
 //! use kucoin_api::client::{Kucoin, Credentials, KucoinEnv};
@@ -43,25 +48,28 @@
 //!
 //! let api = Kucoin::new(KucoinEnv::Live, Some(credentials));
 //! ```
-//! A non-authorized client can be used for accessing Public Endpoints by inputting a None: `Kucoin::new(KucoinEnv::Live, None);`
+//! A non-authorized client can be used for accessing Public Endpoints by inputting a None:
+//! `Kucoin::new(KucoinEnv::Live, None);`
 //!
 //! ## Examples
 //!
 //! Below are some basic examples.
 //!
-//! Private endpoints require an authorized client. Check above for further details on initializing kucoin_api
-//! with appropriate credentials to access private endpoints
+//! Private endpoints require an authorized client. Check above for further details on initializing
+//! kucoin_api with appropriate credentials to access private endpoints
 //!
 //! ### REST Usage
 //!
-//! REST calls, like Websocket connections, require first setting up the client. Once the client is setup, calls can be made in whatever
-//! ways suit end-users' needs.
+//! REST calls, like Websocket connections, require first setting up the client. Once the client is
+//! setup, calls can be made in whatever ways suit end-users' needs.
 //!
-//! Please note that endpoints have varying amounts of input parameter requirements and options. Required parameters are always direct inputs
-//! but types may vary. Optional requirements are wrapped in Option\<T\>, so be aware that a large number of calls require None or Some(T).
-//! inputs. The endpoints with signficant number of options take advantage of builder methods on optional structs.
-//! This documention provides details of where this is necessary. To check for specific endpoints, see:
-//! [`Kucoin Client`](./kucoin/client/struct.Kucoin.html). Optional structs with builders will be identified in the fn signatures.
+//! Please note that endpoints have varying amounts of input parameter requirements and options.
+//! Required parameters are always direct inputs but types may vary. Optional requirements are
+//! wrapped in Option\<T\>, so be aware that a large number of calls require None or Some(T).
+//! inputs. The endpoints with signficant number of options take advantage of builder methods on
+//! optional structs. This documention provides details of where this is necessary. To check for
+//! specific endpoints, see: [`Kucoin Client`](./kucoin/client/struct.Kucoin.html). Optional structs
+//! with builders will be identified in the fn signatures.
 //!
 //! A simple example is:
 //!
@@ -118,10 +126,11 @@
 //!
 //! ### Websocket Usage
 //!
-//! Websockets require several steps to initalize. A single websocket can accept up to 10 subscriptions,
-//! as per Kucoin limitations. Due to this, the instantiation of the socket takes a Vec<[`WSTopic`][WSTopic]>.
-//! The reason is because multiple subscriptions can be initialized from one call. Below is a simplified single subscription with a line-by-line
-//! short explanation including some basic options for specified error handling.
+//! Websockets require several steps to initalize. A single websocket can accept up to 10
+//! subscriptions, as per Kucoin limitations. Due to this, the instantiation of the socket takes a
+//! Vec<[`WSTopic`][WSTopic]>. The reason is because multiple subscriptions can be initialized from
+//! one call. Below is a simplified single subscription with a line-by-line short explanation
+//! including some basic options for specified error handling.
 //!
 //! ```ignore
 //! extern crate kucoin_api;
@@ -180,25 +189,29 @@
 //! [`WSTopic`][WSTopic] has all the available websocket topics/endpoints that are
 //! available for subscription.
 //!
-//! Note that Level3 data has been separated by message type despite it requiring only a single subscription.
-//! All other subscriptions coincide 1:1 with their response type and KucoinWebsocketMsg,
-//! excluding their Ping, Pong and Welcome messages. Ping, Pong and Welcome can be tracked through their own match arm.
-//! The reasoning for this exception is that for the majority of use cases, each Level3 message has to be handled
-//! in its own way to properly construct an orderbook. By separating the messages by type from the incoming
-//! stream at the library level, it helps to reduce duplication for the end user.
+//! Note that Level3 data has been separated by message type despite it requiring only a single
+//! subscription. All other subscriptions coincide 1:1 with their response type and
+//! KucoinWebsocketMsg, excluding their Ping, Pong and Welcome messages. Ping, Pong and Welcome can
+//! be tracked through their own match arm. The reasoning for this exception is that for the
+//! majority of use cases, each Level3 message has to be handled in its own way to properly
+//! construct an orderbook. By separating the messages by type from the incoming stream at the
+//! library level, it helps to reduce duplication for the end user.
 //!
 //! ## Error Handling
 //!
 //! kucoin_api uses the [`failure crate`](https://crates.io/crates/failure) to propagate errors. Kucoin REST errors are
-//! passed as part of the response structs, however by default, reqwest errors panic. For websocket endpoints, similarly,
-//! by default most protocol and connection errors will panic. Use of `?` will result in panics as well. End users can however  
-//! use the custom [`APIError`](./kucoin/error/enum.APIError.html) enum to match error responses which provide non panic
-//! alternatives allowing for specified error handling. Users can also implement their own more comprehensive solutions.
+//! passed as part of the response structs, however by default, reqwest errors panic. For websocket
+//! endpoints, similarly, by default most protocol and connection errors will panic. Use of `?` will
+//! result in panics as well. End users can however use the custom
+//! [`APIError`](./kucoin/error/enum.APIError.html) enum to match error responses which provide non
+//! panic alternatives allowing for specified error handling. Users can also implement their own
+//! more comprehensive solutions.
 //!
 //! ## Contribution
 //!
-//! Contributions are more than welcome for fixing bugs, writing further documentation, writing further tests,
-//! adding features or helping to improve performance. I'll do my best to review and implement pull requests.
+//! Contributions are more than welcome for fixing bugs, writing further documentation, writing
+//! further tests, adding features or helping to improve performance. I'll do my best to review and
+//! implement pull requests.
 //!
 //! ## Donations
 //!
@@ -214,7 +227,8 @@
 //!
 //! ## License
 //!
-//! This project is open source and uses the MIT license. Feel free to utilize it in whatever way you see fit.
+//! This project is open source and uses the MIT license. Feel free to utilize it in whatever way
+//! you see fit.
 //!
 //! [KucoinWebsocketMsg]: model::websocket::KucoinWebsocketMsg
 //! [WSTopic]: model::websocket::WSTopic
@@ -222,14 +236,13 @@
 pub use futures;
 pub use pin_project;
 pub use reqwest;
+pub use serde;
+pub use serde_json;
 pub use tokio;
 pub use tokio_native_tls;
 pub use tokio_tungstenite;
 pub use tungstenite;
 pub use url;
-
-pub use serde;
-pub use serde_json;
 
 #[macro_use]
 pub extern crate serde_derive;
