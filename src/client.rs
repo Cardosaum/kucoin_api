@@ -35,7 +35,9 @@ impl Credentials {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(clap::ValueEnum)]
 pub enum KucoinEnv {
     Live,
     Sandbox,

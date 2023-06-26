@@ -14,6 +14,8 @@ pub enum Error {
     InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
     #[error("Generic error")]
     Generic(#[from] anyhow::Error),
+    #[error("Failed to parse Kucoin environment")]
+    ParseKucoinEnv,
 }
 
 pub type Result<T> = ::std::result::Result<T, Error>;

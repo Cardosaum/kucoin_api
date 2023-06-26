@@ -1,6 +1,10 @@
 {
     "cSpell.words": [
         "chrono",
-        "Klines"
+        "Klines",
+        "kucoin"
+    ],
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml"
     ]
 }

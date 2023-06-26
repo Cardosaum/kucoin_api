@@ -1,7 +1,10 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(sqlx::Type)]
+#[derive(clap::ValueEnum)]
 #[sqlx(rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[clap(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Symbol {
     BtcUsdt,
 }

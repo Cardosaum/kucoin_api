@@ -1,7 +1,10 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(sqlx::Type)]
+#[derive(clap::ValueEnum)]
 #[sqlx(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
+#[clap(rename_all = "lowercase")]
 pub enum Klines {
     K1min,
     K3min,
@@ -58,11 +61,5 @@ impl Klines {
             Klines::K1day => "1day",
             Klines::K1week => "1week",
         }
-    }
-}
-
-impl std::fmt::Display for Klines {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_str())
     }
 }
