@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::time::Duration;
 
 use base64::encode;
 use hmac::Hmac;
@@ -8,8 +7,11 @@ use reqwest;
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderName;
 use reqwest::header::HeaderValue;
+use reqwest::StatusCode;
 use serde_json::json;
 use sha2::Sha256;
+use tracing_unwrap::OptionExt;
+use tracing_unwrap::ResultExt;
 
 use super::error::Result;
 use super::model::Method;
@@ -54,7 +56,7 @@ impl Kucoin {
     pub fn new(environment: KucoinEnv, credentials: Option<Credentials>) -> Result<Self> {
         let client = reqwest::Client::builder()
             // .use_rustls_tls()
-            .timeout(Duration::from_secs(60))
+            .timeout(std::time::Duration::from_secs(60))
             .build()?;
         let prefix = match environment {
             KucoinEnv::Live => String::from("https://api.kucoin.com"),
@@ -65,26 +67,27 @@ impl Kucoin {
 
     // Generic get request for internal library use.
     // Matches credentials for signed vs. unsigned API calls
+    #[tracing::instrument(level = "debug")]
     pub async fn get(&self, url: String, sign: Option<HeaderMap>) -> Result<reqwest::Response> {
         let req_url = reqwest::Url::parse(&url)?;
-        match sign {
-            Some(sign) => {
-                let resp = self.client.get(req_url).headers(sign).send().await?;
-                if resp.status().is_success() {
-                    Ok(resp)
-                } else {
-                    Ok(resp)
-                }
-            },
-            None => {
-                let resp = self.client.get(req_url).send().await?;
-                if resp.status().is_success() {
-                    Ok(resp)
-                } else {
-                    Ok(resp)
-                }
-            },
+        let req_builder = self.client.get(req_url);
+        let req = match sign {
+            Some(s) => req_builder.headers(s),
+            None => req_builder,
+        };
+        let resp = req.send().await?;
+        tracing::trace!(?resp);
+        if resp.status() == StatusCode::TOO_MANY_REQUESTS {
+            let sec = resp
+                .headers()
+                .get("retry-after")
+                .map(|retry_after| retry_after.to_str().unwrap_or("1").parse::<u64>().unwrap())
+                .unwrap_or(1);
+            tracing::warn!("Rate limit exceeded, sleeping for {sec} seconds...");
+            tokio::time::sleep(std::time::Duration::from_secs(sec)).await;
         }
+        tracing::debug!(?resp);
+        Ok(resp)
     }
 
     pub async fn post(

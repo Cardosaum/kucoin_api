@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use reqwest::header;
+use tracing_unwrap::OptionExt;
 
 use crate::client::Kucoin;
 use crate::error::Result;
@@ -87,10 +88,12 @@ impl Kucoin {
         Ok(resp)
     }
 
+    #[tracing::instrument]
     pub async fn get_klines(&self, request: crate::model::request::market::CandleRequest) -> Result<APIData<Candle>> {
         let endpoint = request.get_endpoint();
         let url = format!("{}{}", &self.prefix, endpoint);
-        let resp = self.get(url, None).await?.json().await?;
+        let resp: APIData<Candle> = self.get(url, None).await?.json().await?;
+        tracing::info!(code=%resp.code, "Klines response");
         Ok(resp)
     }
 

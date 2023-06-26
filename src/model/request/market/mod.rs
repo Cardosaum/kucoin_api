@@ -16,6 +16,7 @@ impl CandleRequest {
         CandleRequest { klines, symbol, start_at, end_at }
     }
 
+    #[tracing::instrument(level = "trace")]
     pub fn get_endpoint(&self) -> String {
         let mut endpoint = String::from("/api/v1/market/candles?");
         endpoint.push_str(&format!("type={klines}", klines = self.klines.as_str()));
@@ -26,6 +27,7 @@ impl CandleRequest {
         if let Some(t) = self.end_at {
             endpoint.push_str(&format!("&endAt={}", t.timestamp()));
         }
+        tracing::trace!(endpoint);
         endpoint
     }
 }
